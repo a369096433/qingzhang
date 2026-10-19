@@ -1,0 +1,73 @@
+# 开发与发布说明
+
+> 这份文件给维护者看，普通用户请读 [README](README.md)。
+
+## 文件结构
+
+| 文件 | 说明 |
+|---|---|
+| `index.html` | **仓库跟踪的入口文件**，GitHub Pages 与备份站点都从这里打开 |
+| `qingzhang.html` | 本地开发副本（已在 `.gitignore` 中忽略），改完代码必须 `cp qingzhang.html index.html` |
+| `guide.html` | 在线图文说明书，配置为同一站点的子页面（`/guide.html`） |
+| `小青账使用说明书.html` / `.pdf` | 说明书的源文件与打印版，PDF 用 `make-manual.js` 重新生成 |
+| `manual/` | 说明书配图与实测报告 |
+| `docs/` | README 用的截图 |
+| `manual-test.js` | Playwright 全功能回归脚本（165 项，期望值运行时从 `DATA` 现算，不要硬编码） |
+
+## 两个发布入口
+
+| 入口 | 地址 | 更新方式 |
+|---|---|---|
+| GitHub Pages（主） | https://a369096433.github.io/qingzhang/ | 推送到 `main` 后由 Actions 自动构建，约 1~2 分钟生效；CDN 另有 10 分钟缓存 |
+| WorkBuddy 托管（备） | https://qingzhang-ledger-63298.app.workbuddy.host/ | 重新发布后即时生效 |
+
+> **两个平台必须同时更新**，只更一个会造成「同一版本两种内容」。
+
+## 发版流程
+
+1. 改 `qingzhang.html`，同步把关于页版本号改成新版本（`HTML 复刻版 · vX.Y · 日期`）。
+2. `cp qingzhang.html index.html`。
+3. 推送 `main`，**等 Actions 的 `pages build and deployment` 变成 `completed`**，再用
+   `curl -s https://a369096433.github.io/qingzhang/ | sha256sum` 与本地 `sha256sum index.html` 比对，一致才算生效。
+4. 重新发布 WorkBuddy 托管，同样比对 `sha256` 与字节数。
+5. 核对三处版本号（关于页 / 本文件版本历史 / `guide.html` 封面 chip）与 README 顶部链接。
+
+## 版本号规则
+
+`v主.次` 递增：
+
+- **主版本 +1**：数据结构变更、需要迁移或可能影响已有账单的功能重做
+- **次版本 +1**：新增功能、界面调整、缺陷修复等常规更新
+
+版本号必须同时出现在三处，缺一处就无法判断线上是不是最新：
+
+| 位置 | 形式 |
+|---|---|
+| App「我的 → 关于小青账」 | `HTML 复刻版 · v1.1 · 2026-10-20` |
+| `DEVELOPING.md` 本节版本历史 | 表格一行 |
+| `guide.html` 封面 chip | `适用 App v1.1` |
+
+## 版本历史
+
+| 版本 | 日期 | 主要变化 |
+|---|---|---|
+| v1.0 | 2026-10-17 | 首个可发布版本：记账、报表、资产、预算、日历、搜索、导入导出、深色模式、PIN 锁 |
+| v1.1 | 2026-10-20 | 日历新增月/年账单统计与逐条明细（按日/按月分段、可切平铺、首屏 30 条 + 加载更多）；App 内新增「使用说明」入口；修复月份切换后选中日期不跟随等缺陷 |
+
+## 技术说明
+
+| 项 | 说明 |
+|---|---|
+| 形态 | 单个 HTML 文件，约 3800 行，无构建、无 npm 依赖 |
+| 图标 | 26 个内联 SVG 线性图标（`ICON_PATHS` + `svgOf()`），不依赖图标字体 |
+| 图表 | 手写 SVG：三次贝塞尔平滑曲线、渐变面积、环形图、条形柱状图 |
+| 设计 | 纸感手账风：米白纸底 + 暖描边 + 衬线数字；深色为暖黑 |
+| 存储 | `localStorage`，key `qingzhang.v1` |
+| 兼容 | 现代浏览器（Chrome / Edge / Safari / Firefox），移动端优先 |
+
+## 容易踩的坑
+
+- 给自绘按钮写 `display:block` 时，务必备上 `[hidden]{display:none}`，否则浏览器的 `[hidden]` 会被盖掉。
+- 新增状态类名先全局 grep，避免撞上已有的组件类（踩过 `.empty` 的坑，把柱状图撑成 80px）。
+- 12 列栅格用 `repeat(12, minmax(0, 1fr))`，`1fr` 的自动最小值会被内容撑破。
+- 一个工作区只能有一个已发布应用，附加文档只能做成同站子页面，另建目录部署会覆盖原应用。
