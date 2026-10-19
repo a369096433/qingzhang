@@ -104,12 +104,37 @@
 | GitHub Pages | https://a369096433.github.io/qingzhang/ | 推送到 `main` 后由 Actions 自动构建，约 1~2 分钟生效；CDN 另有 10 分钟缓存 |
 | WorkBuddy 托管（备用） | https://qingzhang-ledger-63298.app.workbuddy.host/ | 重新发布后即时生效 |
 
-维护时请注意：
+> **两个平台必须同时更新**，只更一个会造成「同一版本两种内容」。GitHub Pages 是主入口，WorkBuddy 托管是备用入口，内容应当逐字节一致。
 
-1. 仓库跟踪的入口文件是 **`index.html`**（`qingzhang.html` 为本地开发副本，已在 `.gitignore` 中忽略）。改完代码必须执行 `cp qingzhang.html index.html` 再提交，否则 Pages 拿不到新代码。
-2. 每次改动都要确认 **Pages 内容 = 仓库最新 `index.html`**：`curl -s https://a369096433.github.io/qingzhang/ | sha256sum` 与本地 `sha256sum index.html` 一致。
-3. 本 README 顶部的 Pages 链接、`guide.html` 链接需与实际上线地址保持一致；页面路径或域名有变化时同步修改本节。
-4. 版本号写在「我的 → 关于小青账」里（`HTML 复刻版 · vX.Y · 日期`），发布新版本时一并更新，便于确认线上是否为最新构建。
+### 发版流程（每次改完都照此执行）
+
+1. 改 `qingzhang.html`，再把关于页版本号改为新版本（`HTML 复刻版 · vX.Y · 日期`）。
+2. `cp qingzhang.html index.html` —— 仓库跟踪的入口是 **`index.html`**，`qingzhang.html` 已被 `.gitignore` 忽略，不同步的话 Pages 拿不到新代码。
+3. 提交并推送 `main`，**等 Actions 的 `pages build and deployment` 变成 `completed`**，再用 `curl -s https://a369096433.github.io/qingzhang/ | sha256sum` 与本地 `sha256sum index.html` 比对，一致才算生效（通常 1~2 分钟，CDN 另有 10 分钟缓存）。
+4. 重新发布 WorkBuddy 托管（备份地址），同样比对 `sha256` 与字节数。
+5. 顺手核对：README 顶部两个链接、`guide.html` 链接、以及页面里显示的版本号是否都指向新版本。
+
+### 版本号规则
+
+采用 `v主.次` 递增：
+
+- **主版本 +1**：数据结构变更、需要迁移或可能影响已有账单的功能重做
+- **次版本 +1**：新增功能、界面调整、缺陷修复等常规更新
+
+版本号需要同时出现在三处，缺一不可（三处都改了才能一眼判断线上是不是最新）：
+
+| 位置 | 形式 | 用途 |
+|---|---|---|
+| App「我的 → 关于小青账」 | `HTML 复刻版 · v1.1 · 2026-10-20` | 打开线上页面即可自查 |
+| `README.md` 本节版本历史 | 表格一行 | 仓库里可追溯 |
+| `guide.html` 封面 chip | `适用 App v1.1` | 说明书的适用版本 |
+
+### 版本历史
+
+| 版本 | 日期 | 主要变化 |
+|---|---|---|
+| v1.0 | 2026-10-17 | 首个可发布版本：记账、报表、资产、预算、日历、搜索、导入导出、深色模式、PIN 锁 |
+| v1.1 | 2026-10-20 | 日历新增月/年账单统计与逐条明细（按日/按月分段、可切平铺、首屏 30 条 + 加载更多）；App 内新增「使用说明」入口；修复月份切换后选中日期不跟随等缺陷 |
 
 
 ---
