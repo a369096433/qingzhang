@@ -689,6 +689,121 @@
     .cal-day .dot.inc { background: var(--success); }
     .cal-day.selected .dot { background: #fff; }
 
+    /* ============ 日历 · 月/年账单统计 ============ */
+    .cal-stat {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px 13px;
+      margin-bottom: 12px;
+    }
+    .cal-stat-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 13px;
+    }
+    .cal-stat-head .seg { width: 148px; flex: 0 0 auto; padding: 3px; }
+    .cal-stat-head .seg button { padding: 6px 0; font-size: 12.5px; }
+    .cal-stat-period { font-size: 12px; color: var(--text-2); letter-spacing: .6px; }
+    .cal-stat-main { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cal-stat-main .cell { min-width: 0; }
+    .cal-stat-main .l { font-size: 10.5px; color: var(--text-3); letter-spacing: 1.6px; margin-bottom: 3px; }
+    .cal-stat-main .v {
+      font-size: 21px; font-weight: 600; line-height: 1.25;
+      font-family: var(--font-num); letter-spacing: -.2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cal-stat-main .v.exp { color: var(--danger); }
+    .cal-stat-main .v.inc { color: var(--success); }
+    .cal-stat-sub {
+      margin-top: 11px; padding-top: 9px; border-top: 1px dashed var(--border);
+      font-size: 11.5px; color: var(--text-3); letter-spacing: .3px;
+      display: flex; flex-wrap: wrap; gap: 3px 14px; line-height: 1.7;
+    }
+    .cal-stat-sub b { color: var(--text-2); font-weight: 600; font-family: var(--font-num); }
+    .cal-stat-sub .ratio.up { color: var(--danger); }
+    .cal-stat-sub .ratio.down { color: var(--success); }
+    .cal-stat-foot {
+      display: flex; flex-wrap: wrap; gap: 3px 16px; margin-top: 6px;
+      font-size: 11.5px; color: var(--text-3); letter-spacing: .3px;
+    }
+    .cal-stat-foot b { color: var(--text-2); font-weight: 600; font-family: var(--font-num); }
+
+    /* 年账单：12 个月迷你柱状图 */
+    .cal-bars {
+      display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px;
+      margin-top: 12px;
+    }
+    .cal-bar {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      cursor: pointer; min-width: 0;
+    }
+    .cal-bar .track {
+      width: 100%; height: 46px; background: var(--bg-soft);
+      border-radius: 3px; display: flex; align-items: flex-end; overflow: hidden;
+    }
+    .cal-bar .fill {
+      width: 100%; border-radius: 3px 3px 0 0; background: var(--danger);
+      opacity: .82; transition: height .35s cubic-bezier(.22,.61,.36,1), opacity .2s, background .2s;
+    }
+    /* 注意：这里不能复用 .empty，会和全局空状态组件（padding:40px 16px）冲突 */
+    .cal-bar .fill.zero { height: 2px; opacity: .3; }
+    .cal-bar .mm { font-size: 9px; color: var(--text-3); line-height: 1; letter-spacing: -.2px; }
+    .cal-bar:hover .fill { opacity: 1; }
+    /* 当前所在月份：保留支出红，用主色描边 + 月份高亮标识，避免与「收入绿」混淆 */
+    .cal-bar.active .track { box-shadow: inset 0 0 0 1.5px var(--primary); }
+    .cal-bar.active .fill { opacity: 1; }
+    .cal-bar.active .mm { color: var(--primary); font-weight: 700; }
+
+    /* 月/年账单：逐条明细 */
+    .cal-detail { margin-top: 12px; }
+    .cal-detail-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 8px; padding: 0 2px;
+    }
+    .cal-detail-head .t { font-size: 12px; color: var(--text-2); letter-spacing: .4px; }
+    .cal-detail-head .t b { color: var(--text); font-weight: 600; font-family: var(--font-num); }
+    .cal-switch {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11.5px; color: var(--text-3); cursor: pointer;
+      user-select: none; -webkit-user-select: none;
+    }
+    .cal-switch input { display: none; }
+    .cal-switch .knob {
+      width: 30px; height: 17px; border-radius: 99px;
+      background: var(--bg-soft); border: 1px solid var(--border);
+      position: relative; transition: background .2s, border-color .2s;
+    }
+    .cal-switch .knob::after {
+      content: ""; position: absolute; top: 2px; left: 2px;
+      width: 11px; height: 11px; border-radius: 50%;
+      background: var(--text-3); transition: transform .2s, background .2s;
+    }
+    .cal-switch input:checked + .knob { background: var(--primary-soft); border-color: var(--primary); }
+    .cal-switch input:checked + .knob::after { transform: translateX(13px); background: var(--primary); }
+    .cal-list {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .cal-list .bill-item { padding: 11px 14px; }
+    .cal-grp {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 8px 14px; font-size: 11.5px; color: var(--text-3); letter-spacing: .4px;
+      background: var(--bg-soft); transition: background .3s;
+    }
+    .cal-grp b { font-weight: 600; color: var(--text-2); font-family: var(--font-num); white-space: nowrap; }
+    .cal-grp .line { flex: 1; height: 1px; background: var(--border); min-width: 10px; opacity: .7; }
+    .cal-grp.sel, .cal-grp.hl { background: var(--primary-soft); }
+    .cal-grp.sel { color: var(--primary-dark); }
+    [data-theme="dark"] .cal-grp.sel { color: var(--primary-light); }
+    .cal-grp.sel b, .cal-grp.hl b { color: inherit; }
+    .bill-item.hl { background: var(--primary-soft); }
+    .cal-more {
+      display: block; width: 100%; margin-top: 10px; padding: 10px;
+      border: 1px dashed var(--border); border-radius: 10px;
+      background: transparent; color: var(--text-2);
+      font-size: 12.5px; font-family: inherit; cursor: pointer;
+    }
+    .cal-more[hidden] { display: none; }   /* 作者样式 display:block 会盖掉 [hidden]，必须显式关闭 */
+    .cal-more:hover { background: var(--bg-soft); }
+
     /* 锁屏 */
     #lockScreen {
       position: fixed; inset: 0;
@@ -1239,6 +1354,28 @@
         <button class="save" id="goToday">回到今天</button>
       </div>
       <div class="modal-body">
+        <!-- 月 / 年账单统计 -->
+        <div class="cal-stat">
+          <div class="cal-stat-head">
+            <div class="seg" id="calStatSeg">
+              <button data-s="month" class="active">月账单</button>
+              <button data-s="year">年账单</button>
+            </div>
+            <span class="cal-stat-period" id="calStatPeriod">—</span>
+          </div>
+          <div class="cal-stat-main">
+            <div class="cell">
+              <div class="l">支出</div>
+              <div class="v exp num" id="csExpense">0.00</div>
+            </div>
+            <div class="cell">
+              <div class="l">收入</div>
+              <div class="v inc num" id="csIncome">0.00</div>
+            </div>
+          </div>
+          <div class="cal-stat-sub" id="calStatSub"></div>
+          <div id="calStatExtra"></div>
+        </div>
         <div class="cal">
           <div class="cal-head">
             <button id="calPrev" aria-label="上个月"><span class="ico" data-ico="chevL" data-size="17"></span></button>
@@ -1250,9 +1387,16 @@
           </div>
           <div class="cal-days" id="calDays"></div>
         </div>
-        <div class="card" style="margin-top:12px">
-          <div class="card-title"><span id="calSelDate">点击日期查看</span></div>
-          <div id="calBills"></div>
+        <!-- 月 / 年账单：逐条明细 -->
+        <div class="cal-detail">
+          <div class="cal-detail-head">
+            <span class="t" id="calListTitle">本月明细</span>
+            <label class="cal-switch" title="开启后按日/按月分段，关闭则平铺">
+              <input type="checkbox" id="calGroupChk" checked><span class="knob"></span>分组
+            </label>
+          </div>
+          <div class="cal-list" id="calBills"></div>
+          <button class="cal-more" id="calMore" hidden></button>
         </div>
       </div>
     </div>
@@ -2025,7 +2169,7 @@
       const wd = ['日','一','二','三','四','五','六'][new Date(date).getDay()];
       return `${mm}-${dd} 周${wd}`;
     }
-    function renderBillItem(b) {
+    function renderBillItem(b, opts = {}) {
       let icon, sign, cls;
       if (b.type === 'expense') {
         const c = categoryById(b.categoryId);
@@ -2053,6 +2197,8 @@
         if (acc) meta.push(acc.icon + ' ' + acc.name);
       }
       if (b.remark) meta.push(b.remark);
+      // 年账单/平铺列表里没有分组标题，补上日期
+      if (opts.withDate) meta.unshift(`${+b.date.slice(5, 7)}月${+b.date.slice(8, 10)}日`);
       const item = el(`<div class="bill-item" data-id="${b.id}">
         <div class="bill-icon ${b.type === 'transfer' ? 'transfer' : (b.refundOf ? 'refund' : '')}">${icon}</div>
         <div class="bill-info">
@@ -3049,21 +3195,181 @@
     }
 
     /* ====================================================================
-       日历
+       日历（含 月账单 / 年账单 统计与逐条明细）
        ==================================================================== */
+    if (STATE.calStatMode !== 'month' && STATE.calStatMode !== 'year') STATE.calStatMode = 'month';
+    if (typeof STATE.calGroup !== 'boolean') STATE.calGroup = true;
+    const CAL_PAGE = 30;   // 列表首屏 30 条，之后每次「加载更多」再加 30 条
+    if (!STATE.calListLimit) STATE.calListLimit = CAL_PAGE;
+
     function openCalendar() {
+      syncCalStatSeg();
       renderCal();
       openModal('m-cal');
     }
     $('#btnCal').addEventListener('click', openCalendar);
-    $('#calPrev').addEventListener('click', () => { STATE.calMonth = shiftMonth(STATE.calMonth, -1); renderCal(); });
-    $('#calNext').addEventListener('click', () => { STATE.calMonth = shiftMonth(STATE.calMonth, 1); renderCal(); });
+
+    function syncCalStatSeg() {
+      $$('#calStatSeg button').forEach(b =>
+        b.classList.toggle('active', b.dataset.s === STATE.calStatMode));
+    }
+    // 月 / 年 切换：重绘统计区 + 明细列表，不动日历
+    $$('#calStatSeg button').forEach(b => {
+      b.onclick = () => {
+        if (STATE.calStatMode === b.dataset.s) return;
+        STATE.calStatMode = b.dataset.s;
+        STATE.calListLimit = CAL_PAGE;
+        syncCalStatSeg();
+        renderCalStat();
+        renderCalList();
+      };
+    });
+
+    // 分组 / 平铺 开关
+    const calGroupChk = $('#calGroupChk');
+    calGroupChk.checked = STATE.calGroup;
+    calGroupChk.addEventListener('change', e => {
+      STATE.calGroup = e.target.checked;
+      STATE.calListLimit = CAL_PAGE;
+      renderCalList();
+    });
+    // 加载更多
+    $('#calMore').addEventListener('click', () => {
+      STATE.calListLimit += CAL_PAGE;
+      renderCalList();
+    });
+
+    // 切月统一入口：选中日期若不在目标月，自动回落到「今天」或该月 1 号
+    function setCalMonth(ym) {
+      STATE.calMonth = ym;
+      const t = todayStr(0);
+      if (!STATE.calSelected || STATE.calSelected.slice(0, 7) !== ym) {
+        STATE.calSelected = t.slice(0, 7) === ym ? t : `${ym}-01`;
+      }
+      STATE.calListLimit = CAL_PAGE;
+      renderCal();
+    }
+    $('#calPrev').addEventListener('click', () => setCalMonth(shiftMonth(STATE.calMonth, -1)));
+    $('#calNext').addEventListener('click', () => setCalMonth(shiftMonth(STATE.calMonth, 1)));
     $('#goToday').addEventListener('click', () => {
       const t = todayStr(0);
       STATE.calMonth = t.slice(0, 7);
       STATE.calSelected = t;
+      STATE.calListLimit = CAL_PAGE;
       renderCal();
     });
+
+    /* ---------- 统计聚合 ---------- */
+    // 年账单聚合：按自然年汇总，并给出 12 个月分布（转账不计入）
+    function yearStats(ledgerId, year) {
+      const prefix = String(year);
+      const bills = billsInLedger(ledgerId).filter(b => b.date.slice(0, 4) === prefix);
+      const byMonth = Array.from({ length: 12 }, (_, i) => ({ m: i + 1, expense: 0, income: 0 }));
+      let expense = 0, income = 0, count = 0;
+      bills.forEach(b => {
+        if (b.type !== 'expense' && b.type !== 'income') return;
+        const idx = +b.date.slice(5, 7) - 1;
+        if (!(idx >= 0 && idx < 12)) return;
+        const amt = +b.amount || 0;
+        count++;
+        if (b.type === 'expense') { expense += amt; byMonth[idx].expense += amt; }
+        else { income += amt; byMonth[idx].income += amt; }
+      });
+      const activeMonths = byMonth.filter(x => x.expense > 0 || x.income > 0).length;
+      return { expense, income, net: income - expense, count, byMonth, activeMonths };
+    }
+
+    function renderCalStat() {
+      const [y, m] = STATE.calMonth.split('-').map(Number);
+      const isYear = STATE.calStatMode === 'year';
+      const st = isYear
+        ? yearStats(STATE.activeLedger, y)
+        : monthStats(STATE.activeLedger, STATE.calMonth);
+      const count = isYear ? st.count : st.expenseBills.length + st.incomeBills.length;
+
+      $('#calStatPeriod').textContent = isYear ? `${y} 年` : `${y}年${m}月`;
+      $('#csExpense').textContent = fmtNum(st.expense);
+      $('#csIncome').textContent = fmtNum(st.income);
+
+      // 主信息：结余 / 笔数 / 均值 / 环比（简称）
+      const sub = [];
+      sub.push(`结余 <b>${fmtSigned(st.net)}</b>`);
+      sub.push(`共 <b>${count}</b> 笔`);
+      if (isYear) {
+        const avg = st.activeMonths ? st.expense / st.activeMonths : 0;
+        sub.push(`月均支出 <b>${fmtNum(avg)}</b>`);
+      } else {
+        sub.push(`日均支出 <b>${fmtNum(st.expense / daysInMonth(STATE.calMonth))}</b>`);
+      }
+
+      // 环比（月）/ 同比（年）——都按支出比较
+      const prevExpense = isYear
+        ? yearStats(STATE.activeLedger, y - 1).expense
+        : monthStats(STATE.activeLedger, shiftMonth(STATE.calMonth, -1)).expense;
+      const cmpLabel = isYear ? '较去年支出' : '较上月支出';
+      if (prevExpense > 0) {
+        const diff = (st.expense - prevExpense) / prevExpense * 100;
+        const up = diff >= 0;
+        sub.push(`${cmpLabel} <b class="ratio ${up ? 'up' : 'down'}">${up ? '↑' : '↓'} ${Math.abs(diff).toFixed(1)}%</b>`);
+      } else {
+        sub.push(`${cmpLabel} <b>—</b>`);
+      }
+      $('#calStatSub').innerHTML = sub.map(s => `<span>${s}</span>`).join('');
+
+      const extra = $('#calStatExtra');
+      if (isYear) {
+        // 12 个月分布柱状图，点击某月下钻到该月账单
+        const max = Math.max(...st.byMonth.map(x => x.expense), 0);
+        extra.innerHTML = `<div class="cal-bars">${st.byMonth.map(x => {
+          const pct = max ? Math.round(x.expense / max * 100) : 0;
+          const cls = [
+            'cal-bar',
+            x.m === m ? 'active' : '',
+          ].join(' ').trim();
+          const fillCls = 'fill' + (x.expense > 0 ? '' : ' zero');
+          const h = x.expense > 0 ? Math.max(pct, 6) : 0;
+          return `<div class="${cls}" data-m="${x.m}" title="${x.m}月 · 支出 ${fmtNum(x.expense)} / 收入 ${fmtNum(x.income)}">
+            <div class="track"><div class="${fillCls}" style="height:${h}%"></div></div>
+            <div class="mm">${x.m}</div>
+          </div>`;
+        }).join('')}</div>` + (count
+          ? `<div class="cal-stat-foot"><span>点柱子看该月明细 · 月均按 <b>${st.activeMonths}</b> 个有账单月计算</span></div>`
+          : `<div class="cal-stat-foot"><span>${y} 年还没有账单</span></div>`);
+        $$('#calStatExtra .cal-bar').forEach(n => {
+          n.onclick = () => {
+            const mm = String(n.dataset.m).padStart(2, '0');
+            STATE.calStatMode = 'month';
+            syncCalStatSeg();
+            setCalMonth(`${y}-${mm}`);
+            toast(`已查看 ${y}年${+n.dataset.m}月账单`);
+          };
+        });
+      } else {
+        // 月账单：补充「单日最高」「单笔最高」两个关键指标
+        const expBills = st.expenseBills || [];
+        const byDay = {};
+        expBills.forEach(b => {
+          const d = b.date.slice(8, 10);
+          byDay[d] = (byDay[d] || 0) + (+b.amount || 0);
+        });
+        let maxDay = 0, maxDayKey = '';
+        Object.keys(byDay).forEach(d => {
+          if (byDay[d] > maxDay) { maxDay = byDay[d]; maxDayKey = d; }
+        });
+        let topBill = null;
+        expBills.forEach(b => {
+          if (!topBill || (+b.amount || 0) > (+topBill.amount || 0)) topBill = b;
+        });
+        const topCat = topBill ? categoryById(topBill.categoryId) : null;
+        extra.innerHTML = count
+          ? `<div class="cal-stat-foot">
+              <span>单日最高 <b>${maxDayKey ? (+maxDayKey) + '日 · ' + fmtNum(maxDay) : '—'}</b></span>
+              <span>单笔最高 <b>${topBill ? fmtNum(topBill.amount) + (topCat ? ' · ' + escapeHtml(topCat.name) : '') : '—'}</b></span>
+            </div>`
+          : `<div class="cal-stat-foot"><span>本期还没有账单，点右下角「+」记一笔试试</span></div>`;
+      }
+    }
+
     function renderCal() {
       const [y, m] = STATE.calMonth.split('-').map(Number);
       $('#calYm').textContent = `${y}年${m}月`;
@@ -3092,21 +3398,118 @@
       }
       $('#calDays').innerHTML = cells.join('');
       $$('#calDays .cal-day[data-date]').forEach(c => {
-        c.onclick = () => { STATE.calSelected = c.dataset.date; renderCal(); renderCalDayBills(); };
+        c.onclick = () => {
+          STATE.calSelected = c.dataset.date;
+          renderCal();
+          jumpToCalDate(c.dataset.date);
+        };
       });
-      renderCalDayBills();
+      renderCalStat();
+      renderCalList();
     }
-    function renderCalDayBills() {
-      const date = STATE.calSelected;
-      $('#calSelDate').textContent = date;
-      const bills = billsInLedger(STATE.activeLedger).filter(b => b.date === date);
+
+    /* ---------- 逐条明细 ---------- */
+    // 当前口径（月/年）下的全部收支账单，按日期倒序；转账不计入，与统计口径一致
+    function calStatBills() {
+      const isYear = STATE.calStatMode === 'year';
+      const y = STATE.calMonth.slice(0, 4);
+      const list = billsInLedger(STATE.activeLedger).filter(b => {
+        if (b.type !== 'expense' && b.type !== 'income') return false;
+        return isYear ? b.date.slice(0, 4) === y : b.date.slice(0, 7) === STATE.calMonth;
+      });
+      list.sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || 0) - (a.createdAt || 0));
+      return list;
+    }
+
+    function renderCalList() {
+      const isYear = STATE.calStatMode === 'year';
+      const [y, m] = STATE.calMonth.split('-').map(Number);
+      const all = calStatBills();
       const wrap = $('#calBills');
-      if (!bills.length) {
-        wrap.innerHTML = '<div class="empty" style="padding:24px"><div class="msg">当日无账单</div></div>';
+      const more = $('#calMore');
+
+      $('#calListTitle').innerHTML =
+        `${isYear ? y + ' 年' : m + ' 月'}明细 · 共 <b>${all.length}</b> 条`;
+
+      if (!all.length) {
+        wrap.innerHTML = `<div class="empty" style="padding:26px 16px">
+          <div class="msg">${isYear ? y + ' 年' : m + ' 月'}还没有账单</div>
+          <div class="empty-hint">点右下角「+」记一笔</div></div>`;
+        more.hidden = true;
         return;
       }
+
+      const shown = all.slice(0, STATE.calListLimit);
+      const rest = all.length - shown.length;
+      const frag = document.createDocumentFragment();
+
+      if (!STATE.calGroup) {
+        shown.forEach(b => frag.appendChild(renderBillItem(b, { withDate: true })));
+      } else {
+        // 月账单按「日」分段，年账单按「月」分段
+        const groups = new Map();
+        shown.forEach(b => {
+          const k = isYear ? b.date.slice(0, 7) : b.date;
+          if (!groups.has(k)) groups.set(k, []);
+          groups.get(k).push(b);
+        });
+        [...groups.keys()].sort().reverse().forEach(k => {
+          const items = groups.get(k);
+          let exp = 0, inc = 0;
+          items.forEach(b => b.type === 'expense' ? exp += (+b.amount || 0) : inc += (+b.amount || 0));
+          const title = isYear
+            ? `${+k.slice(5, 7)} 月`
+            : `${+k.slice(5, 7)}月${+k.slice(8, 10)}日`;
+          // 只有收入的分段不要显示「支出 0.00」
+          const label = exp > 0
+            ? `支出 ${fmtNum(exp)}` + (inc > 0 ? ` · 收入 ${fmtNum(inc)}` : '')
+            : `收入 ${fmtNum(inc)}`;
+          const sel = !isYear && k === STATE.calSelected ? ' sel' : '';
+          const head = el(`<div class="cal-grp${sel}" data-k="${k}">
+            <span>${title} · ${items.length} 条</span>
+            <span class="line"></span>
+            <b>${label}</b>
+          </div>`);
+          frag.appendChild(head);
+          items.forEach(b => frag.appendChild(renderBillItem(b, { withDate: isYear })));
+        });
+      }
+
       wrap.innerHTML = '';
-      bills.forEach(b => wrap.appendChild(renderBillItem(b)));
+      wrap.appendChild(frag);
+      if (rest > 0) {
+        more.hidden = false;
+        more.textContent = `加载更多（还有 ${rest} 条）`;
+      } else {
+        more.hidden = true;
+      }
+    }
+
+    // 点日历某天 → 滚到该天所在分段并高亮（分组关闭时定位到当天第一条）
+    function jumpToCalDate(date) {
+      if (!date) return;
+      const isYear = STATE.calStatMode === 'year';
+      const key = isYear ? date.slice(0, 7) : date;
+      const wrap = $('#calBills');
+      const hit = b => isYear ? b.date.slice(0, 7) === key : b.date === date;
+      if (!calStatBills().some(hit)) { toast('这一天没有账单'); return; }
+
+      const find = () => {
+        if (STATE.calGroup) return wrap.querySelector(`.cal-grp[data-k="${key}"]`);
+        const first = calStatBills().find(hit);
+        return first ? wrap.querySelector(`.bill-item[data-id="${first.id}"]`) : null;
+      };
+      let target = find();
+      if (!target) {   // 被「加载更多」截断，先展开到包含该条
+        const idx = calStatBills().findIndex(hit);
+        STATE.calListLimit = Math.max(STATE.calListLimit, idx + CAL_PAGE);
+        renderCalList();
+        target = find();
+      }
+      if (!target) return;
+      target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      target.classList.add('hl');
+      setTimeout(() => target.classList.remove('hl'), 1500);
     }
 
     /* ====================================================================
