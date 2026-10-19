@@ -2,11 +2,17 @@
 
 一个**单文件、零依赖、纯本地**的轻量记账应用。双击 HTML 就能用，不需要装 App、不需要注册、不联网、没有后端 —— 数据全部存在浏览器的 `localStorage` 里。
 
-👉 **在线体验**：[GitHub Pages](https://a369096433.github.io/qingzhang/) · [备用地址](https://qingzhang-ledger-63298.app.workbuddy.host/)
+👉 **在线体验 GitHub Pages**：**https://a369096433.github.io/qingzhang/**
+
+👉 备用地址（WorkBuddy 托管，更新即时生效）：https://qingzhang-ledger-63298.app.workbuddy.host/
 
 > 手机上打开链接后，用 Safari / Chrome 的「添加到主屏幕」，体验跟原生 App 基本一致（有独立图标、全屏、无地址栏）。
 >
 > 📖 [图文使用说明](https://a369096433.github.io/qingzhang/guide.html)
+>
+> ⓘ **如果打开后看到的还是旧界面**：GitHub Pages 会对页面做 10 分钟 CDN 缓存，刷新一次即可（电脑 Ctrl/Cmd+Shift+R，手机重开标签页）。
+> 想确认自己看的是哪个版本：首页右下角「我的 → 关于小青账」，底部有版本号与日期。
+
 
 ---
 
@@ -51,7 +57,8 @@
 - 净资产、总资产、总负债汇总，本月支出 TOP 5
 
 **其它**
-- 日历视图：哪天花了多少一眼看到
+- 日历视图：月账单 / 年账单统计（支出、收入、结余、笔数、日均或月均、环比与同比、12 个月柱状图），下面逐条列出每笔记录
+- 日历明细：月账单按「日」分段、年账单按「月」分段，可一键切平铺；首屏 30 条，超出用「加载更多」分批追加；点日历某天自动定位到当天分段
 - 关键词搜索：分类名、账户名、备注、金额
 - 数据导出 CSV / JSON、导入恢复
 - 深色模式（暖黑纸感，不是死黑）
@@ -82,11 +89,28 @@
 
 | 项 | 说明 |
 |---|---|
-| 形态 | 单个 HTML 文件，约 3400 行，无构建、无 npm 依赖 |
+| 形态 | 单个 HTML 文件，约 3800 行，无构建、无 npm 依赖 |
 | 图标 | 26 个内联 SVG 线性图标（`ICON_PATHS` + `svgOf()`），不依赖图标字体 |
-| 图表 | 手写 SVG：三次贝塞尔平滑曲线（控制点同 y 的水平切线，不过冲、不跌破零轴）、渐变面积、环形图 |
+| 图表 | 手写 SVG：三次贝塞尔平滑曲线（控制点同 y 的水平切线，不过冲、不跌破零轴）、渐变面积、环形图、条形柱状图 |
 | 设计 | 纸感手账风：米白纸底 + 暖描边 + 衬线数字；深色为暖黑 |
 | 兼容 | 现代浏览器（Chrome / Edge / Safari / Firefox），移动端优先 |
+
+---
+
+## 发布与同步
+
+| 入口 | 地址 | 更新方式 |
+|---|---|---|
+| GitHub Pages | https://a369096433.github.io/qingzhang/ | 推送到 `main` 后由 Actions 自动构建，约 1~2 分钟生效；CDN 另有 10 分钟缓存 |
+| WorkBuddy 托管（备用） | https://qingzhang-ledger-63298.app.workbuddy.host/ | 重新发布后即时生效 |
+
+维护时请注意：
+
+1. 仓库跟踪的入口文件是 **`index.html`**（`qingzhang.html` 为本地开发副本，已在 `.gitignore` 中忽略）。改完代码必须执行 `cp qingzhang.html index.html` 再提交，否则 Pages 拿不到新代码。
+2. 每次改动都要确认 **Pages 内容 = 仓库最新 `index.html`**：`curl -s https://a369096433.github.io/qingzhang/ | sha256sum` 与本地 `sha256sum index.html` 一致。
+3. 本 README 顶部的 Pages 链接、`guide.html` 链接需与实际上线地址保持一致；页面路径或域名有变化时同步修改本节。
+4. 版本号写在「我的 → 关于小青账」里（`HTML 复刻版 · vX.Y · 日期`），发布新版本时一并更新，便于确认线上是否为最新构建。
+
 
 ---
 
