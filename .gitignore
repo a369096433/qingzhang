@@ -1,0 +1,21 @@
+# 项目内部数据，不发布
+.workbuddy/
+.wbapp_*.genie
+
+# 开发过程中的临时截图与脚本产物
+screenshots/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# 本地开发脚本与测试产物（不发布）
+make-manual.js
+manual-test.js
+test_qingzhang.js
+screenshot.js
+manual/export.csv
+manual/export.json
+manual/report.json
+小青账使用说明书.html
+qingzhang.html

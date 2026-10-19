@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小青账 HTML 版 · 使用说明书</title>
+<style>
+  :root{
+    --ink:#15211f; --ink-2:#334642; --muted:#6b7c78;
+    --teal:#0e9f96; --teal-dark:#0b7c75; --teal-soft:#eaf7f5;
+    --line:#e3e9e8; --bg:#f6f8f8; --card:#ffffff;
+    --amber:#b45309; --amber-soft:#fff8ec; --red:#c2410c; --indigo:#4f46e5;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Source Han Sans SC",sans-serif;
+    color:var(--ink); background:var(--bg);
+    font-size:14.5px; line-height:1.85; -webkit-font-smoothing:antialiased;
+  }
+  .doc{max-width:840px;margin:0 auto;background:var(--card);padding:56px 64px 80px;
+       box-shadow:0 2px 30px rgba(20,40,38,.06)}
+  @media (max-width:760px){ .doc{padding:28px 20px 48px} }
+
+  /* ---------- 封面 ---------- */
+  .cover{padding:8px 0 36px;border-bottom:1px solid var(--line);margin-bottom:36px}
+  .cover .kicker{font-size:12px;letter-spacing:.22em;color:var(--teal);font-weight:600}
+  .cover h1{font-size:38px;line-height:1.25;margin:12px 0 10px;letter-spacing:-.5px}
+  .cover .sub{font-size:16px;color:var(--ink-2);margin:0 0 22px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+  .chip{font-size:12px;color:var(--teal-dark);background:var(--teal-soft);
+        border:1px solid #cfeae6;border-radius:999px;padding:4px 12px}
+  .chip.grey{color:var(--muted);background:#f4f6f6;border-color:var(--line)}
+  .cover .lead{font-size:14.5px;color:var(--ink-2);max-width:640px}
+
+  /* ---------- 目录 ---------- */
+  .toc{background:var(--bg);border-radius:14px;padding:22px 26px;margin:0 0 44px}
+  .toc h2{font-size:13px;letter-spacing:.18em;color:var(--muted);margin:0 0 12px;border:0;padding:0}
+  .toc ol{margin:0;padding-left:20px;columns:2;column-gap:36px}
+  @media (max-width:760px){ .toc ol{columns:1} }
+  .toc li{margin:3px 0;font-size:13.5px}
+  .toc a{color:var(--ink-2);text-decoration:none}
+  .toc a:hover{color:var(--teal-dark)}
+
+  /* ---------- 标题 ---------- */
+  h2{font-size:23px;margin:52px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line);
+     letter-spacing:-.2px;break-after:avoid}
+  h2 .no{color:var(--teal);font-size:15px;font-weight:600;margin-right:10px;letter-spacing:0}
+  h3{font-size:17px;margin:32px 0 8px;color:var(--ink);break-after:avoid}
+  h3 .no{color:var(--muted);font-weight:500;margin-right:8px;font-size:14px}
+  h4{font-size:14.5px;margin:20px 0 6px;color:var(--ink-2)}
+  p{margin:10px 0}
+  strong{color:var(--ink);font-weight:600}
+  code{font-family:"JetBrains Mono",Consolas,Menlo,monospace;font-size:12.5px;
+       background:#f2f5f4;border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
+  /* ---------- 列表 ---------- */
+  ul,ol{padding-left:22px;margin:10px 0}
+  li{margin:5px 0}
+  ol.steps{list-style:none;padding-left:0;counter-reset:s}
+  ol.steps>li{counter-increment:s;position:relative;padding-left:34px;margin:10px 0}
+  ol.steps>li::before{
+    content:counter(s);position:absolute;left:0;top:2px;
+    width:22px;height:22px;border-radius:50%;background:var(--teal-soft);color:var(--teal-dark);
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ---------- 表 ---------- */
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;break-inside:auto}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f3f7f6;color:var(--ink-2);font-weight:600;font-size:12.5px;letter-spacing:.02em}
+  tr{break-inside:avoid}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* ---------- 图 ---------- */
+  figure{margin:22px 0;text-align:center;break-inside:avoid}
+  figure img{width:302px;max-width:100%;border-radius:16px;border:1px solid var(--line);
+             box-shadow:0 10px 28px rgba(18,50,46,.10);vertical-align:top}
+  figcaption{font-size:12.5px;color:var(--muted);margin-top:10px}
+  .figrow{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:22px 0;break-inside:avoid}
+  .figrow figure{margin:0;flex:0 0 auto}
+  .figrow figure img{width:236px}
+
+  /* ---------- 提示框 ---------- */
+  .box{border-radius:10px;padding:13px 18px;margin:18px 0;font-size:13.5px;break-inside:avoid}
+  .box .t{font-weight:700;font-size:12.5px;letter-spacing:.06em;display:block;margin-bottom:4px}
+  .box p:first-of-type{margin-top:0}
+  .box p:last-child{margin-bottom:0}
+  .box.tip{background:var(--teal-soft);border-left:3px solid var(--teal)}
+  .box.tip .t{color:var(--teal-dark)}
+  .box.warn{background:var(--amber-soft);border-left:3px solid #f59e0b}
+  .box.warn .t{color:var(--amber)}
+  .box.test{background:#f5f6ff;border-left:3px solid var(--indigo)}
+  .box.test .t{color:var(--indigo)}
+
+  /* ---------- 结构示意图 ---------- */
+  .map{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}
+  @media (max-width:700px){ .map{grid-template-columns:1fr} }
+  .map .cell{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .map .cell .h{font-weight:700;font-size:13.5px;margin-bottom:4px;color:var(--teal-dark)}
+  .map .cell .d{font-size:12.5px;color:var(--muted);line-height:1.7}
+
+  /* ---------- 数据块 ---------- */
+  pre{background:#0f1b1a;color:#d7ece8;border-radius:10px;padding:16px 18px;overflow-x:auto;
+      font-family:"JetBrains Mono",Consolas,Menlo,monospace;font-size:12px;line-height:1.7;margin:16px 0}
+  pre .k{color:#7fd8cc}
+  pre .s{color:#f0c987}
+  pre .c{color:#7d938f}
+
+  /* ---------- 页脚 ---------- */
+  .foot{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);
+        font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+  @media print{
+    body{background:#fff;font-size:11.2pt;line-height:1.75}
+    .doc{box-shadow:none;max-width:none;padding:0}
+    h2{font-size:17pt;margin:26pt 0 10pt;break-before:page}
+    h2.first{break-before:auto}
+    h3{font-size:12.5pt;margin:16pt 0 6pt}
+    figure{margin:12pt 0}
+    figure img{width:64mm;box-shadow:none}
+    .figrow{gap:10pt;margin:12pt 0}
+    .figrow figure img{width:50mm}
+    figcaption{font-size:8.4pt;margin-top:5pt}
+    .box{margin:10pt 0;padding:9pt 12pt}
+    table{margin:9pt 0;font-size:9.4pt}
+    th,td{padding:5pt 7pt}
+    .toc{break-after:page}
+    .cover{break-after:page;border-bottom:0}
+    a{color:inherit;text-decoration:none}
+    pre{font-size:8.6pt}
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ================= 封面 ================= -->
+  <section class="cover">
+    <div class="kicker">用户手册 / USER MANUAL</div>
+    <h1>小青账 · HTML 版<br>使用说明书</h1>
+    <p class="sub">一款可离线运行的轻量记账工具 —— 多账本、二级分类、资产管理、分类预算、可视化报表</p>
+    <div class="chips">
+      <span class="chip">版本 v1.0</span>
+      <span class="chip grey">实测日期 2026-10-17</span>
+      <span class="chip grey">18 组 · 136 项功能实测全部通过</span>
+      <span class="chip grey">本地存储 · 零联网</span>
+    </div>
+    <p class="lead">
+      本说明书基于对 <code>qingzhang.html</code> 的逐项真实运行测试编写：每一项功能都经过浏览器自动化点击验证，
+      文中标注的金额、条数、颜色规则均来自实际运行结果，不是设计稿描述。你可以按第 2 章直接上手，
+      也可以按第 3 章逐节查阅某个功能怎么用。
+    </p>
+    <figure style="margin-top:26px">
+      <img src="manual/01-home.png" alt="首页">
+      <figcaption>图 0-1　首页：月度汇总、预算进度与按日期分组的账单流水</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= 目录 ================= -->
+  <div class="toc">
+    <h2>目录</h2>
+    <ol>
+      <li><a href="#c1">产品概述</a></li>
+      <li><a href="#c2">快速上手（3 分钟）</a></li>
+      <li><a href="#c3">功能详解</a></li>
+      <li><a href="#c4">使用示例</a></li>
+      <li><a href="#c5">数据存储与备份</a></li>
+      <li><a href="#c6">常见问题与注意事项</a></li>
+      <li><a href="#c7">附录：实测报告</a></li>
+    </ol>
+  </div>
+
+  <!-- ================= 1 ================= -->
+  <h2 id="c1" class="first"><span class="no">01</span>产品概述</h2>
+
+  <h3><span class="no">1.1</span>这是什么</h3>
+  <p>
+    小青账 HTML 版是一款<strong>纯前端、单文件</strong>的个人记账工具，功能结构参考了移动端应用「小青账」，
+    用一份 HTML 文件重新实现。双击文件用浏览器打开即可使用，不需要安装、不需要注册、不产生任何网络请求，
+    所有数据保存在你自己的浏览器里。
+  </p>
+
+  <h3><span class="no">1.2</span>能力一览</h3>
+  <table>
+    <thead><tr><th style="width:22%">模块</th><th>能做什么</th></tr></thead>
+    <tbody>
+      <tr><td>多账本</td><td>默认个人 / 家庭 / 旅行 3 个账本，可新建、改名、换图标；账本之间账户、分类、账单、预算完全隔离</td></tr>
+      <tr><td>记账</td><td>支出、收入两大类；数字键盘录入；一级 + 二级分类；选择付款账户；备注与历史备注快捷标签；自定义日期</td></tr>
+      <tr><td>退款关联</td><td>记收入时可关联本月某笔支出，自动带出金额、账户与「退款：xxx」备注</td></tr>
+      <tr><td>账单管理</td><td>按日期分组展示；点开看详情；可修改（原地更新）与删除（二次确认）；余额自动联动</td></tr>
+      <tr><td>搜索</td><td>按备注、分类、账户、金额、日期关键词检索当前账本的账单</td></tr>
+      <tr><td>报表</td><td>当日收支趋势折线图 + 分类占比环形图，支持一级 / 二级分类粒度切换</td></tr>
+      <tr><td>资产</td><td>多账户余额管理；净资产 / 总资产 / 总负债汇总；账户可增删改；支持自定义支付方式</td></tr>
+      <tr><td>预算</td><td>月度总预算 + 各一级分类预算；进度条与超支预警；可将上月结余结转到本月</td></tr>
+      <tr><td>日历</td><td>月历视图，有收支的日期打点（红=支出／绿=收入），点日期查看当日明细</td></tr>
+      <tr><td>分类管理</td><td>支出 / 收入两套分类，支持新增一级与二级分类、改图标改名称、删除</td></tr>
+      <tr><td>数据</td><td>导出 JSON 全量备份或 CSV 账单（Excel 可直接打开）；导入支持「合并」与「覆盖」两种方式</td></tr>
+      <tr><td>隐私</td><td>4 位 PIN 锁（哈希存储）、深色模式、无广告无追踪</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="no">1.3</span>运行环境</h3>
+  <table>
+    <thead><tr><th style="width:24%">项目</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>文件形态</td><td>单个 <code>qingzhang.html</code>（约 130 KB），无外部依赖、无 CDN、无图片外链</td></tr>
+      <tr><td>浏览器</td><td>Chrome / Edge / Safari / 微信内置浏览器等现代浏览器；手机浏览器可「添加到主屏幕」当 App 用</td></tr>
+      <tr><td>屏幕适配</td><td>按手机竖屏设计（414 × 896 基准），桌面浏览器中居中显示</td></tr>
+      <tr><td>数据位置</td><td>浏览器 localStorage，键名 <code>qingzhang.v1</code></td></tr>
+      <tr><td>网络</td><td>完全离线可用；不会上传任何数据</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="no">1.4</span>界面结构</h3>
+  <p>主界面由「顶栏 + 内容页 + 底部四页签 + 中间悬浮按钮」组成，四个页签各自承载一类工作：</p>
+  <div class="map">
+    <div class="cell">
+      <div class="h">顶栏</div>
+      <div class="d">左侧：账本切换（👤 个人账本 ⌄）<br>右侧：🔍 搜索账单 · 📅 日历视图</div>
+    </div>
+    <div class="cell">
+      <div class="h">🏠 首页</div>
+      <div class="d">月度结余 / 支出 / 收入汇总、月份切换、预算进度卡、按日期分组的账单流水</div>
+    </div>
+    <div class="cell">
+      <div class="h">📊 报表</div>
+      <div class="d">收支趋势折线图、分类占比环形图与排行（一级／二级）</div>
+    </div>
+    <div class="cell">
+      <div class="h">💰 资产</div>
+      <div class="d">净资产卡片、资产／负债账户列表、本月支出 TOP5</div>
+    </div>
+    <div class="cell">
+      <div class="h">👤 我的</div>
+      <div class="d">账本管理、分类管理、预算、日历、导入导出、深色模式、PIN 锁、关于</div>
+    </div>
+    <div class="cell">
+      <div class="h">＋ 悬浮按钮（中间）</div>
+      <div class="d">随时唤起「记一笔」面板，是最高频的入口</div>
+    </div>
+  </div>
+
+  <!-- ================= 2 ================= -->
+  <h2 id="c2"><span class="no">02</span>快速上手（3 分钟）</h2>
+
+  <ol class="steps">
+    <li><strong>打开应用。</strong>双击 <code>qingzhang.html</code>，或访问部署好的在线地址。首次打开会自动生成
+      3 个账本、5 个个人账户、33 个分类和 7 条示例账单，方便你先看到成品效果。</li>
+    <li><strong>确认在哪个账本记账。</strong>看左上角的账本胶囊，默认是「👤 个人账本」。点它可切换或新建账本。</li>
+    <li><strong>点中间的 ＋ 记第一笔。</strong>用数字键盘输入金额 → 点一个二级分类 → 选付款账户 → 点「保存」。
+      保存后首页立刻出现这条账单，且所选账户余额自动扣减。</li>
+    <li><strong>去「📊 报表」看一眼。</strong>折线图展示每天支出与收入，环形图展示钱花在哪些分类上。</li>
+  </ol>
+
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>实测中在「个人账本 · 2026年10月」记一笔 128.00 元「餐饮-晚餐」，付款账户选「支付宝」：账单数由 7 条变为 8 条，
+    支付宝余额由 5,000.00 变为 4,872.00，本月支出由 6,231.00 变为 6,359.00，三处数字同时更新，页面无刷新、无报错。</p>
+  </div>
+
+  <!-- ================= 3 ================= -->
+  <h2 id="c3"><span class="no">03</span>功能详解</h2>
+  <p>以下每节按「用途 → 怎么操作 → 截图 → 实测表现 → 注意事项」展开，可按需跳读。</p>
+
+  <!-- 3.1 -->
+  <h3><span class="no">3.1</span>首页：看我这个月花了多少</h3>
+  <p><strong>用途：</strong>一眼看清本月结余、支出、收入，并浏览每一笔账单。</p>
+  <ol class="steps">
+    <li>顶部大数字是<strong>本月结余</strong>（收入 − 支出），正数带 <code>+</code>，负数带 <code>−</code>。</li>
+    <li>中间两个数字分别是<strong>本月支出</strong>与<strong>本月收入</strong>。</li>
+    <li>用月份左右两侧的 <code>‹</code> <code>›</code> 翻看历史月份；切到没有账单的月份会显示「本月还没有账单」空状态。</li>
+    <li>下方的账单按<strong>日期</strong>分组，组标题右侧显示当天合计（红为支出、绿为收入）；「今天 / 昨天」会被自动识别成中文标签。</li>
+    <li>点击任意一条账单，进入账单详情（见 3.4）。</li>
+  </ol>
+  <figure>
+    <img src="manual/01-home.png" alt="首页">
+    <figcaption>图 3-1　首页自上而下：月份切换 → 结余 → 收支 → 预算卡 → 按日分组的账单</figcaption>
+  </figure>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>初始数据显示「2026年10月 / 本月结余 +5,769.00 / 支出 6,231.00 / 收入 12,000.00」，账单分为 5 个日期组、共 7 条。
+    点击 <code>›</code> 切到 11 月后出现空状态，点 <code>‹</code> 回到 10 月，账单数量与合计完全恢复。</p>
+  </div>
+
+  <!-- 3.2 -->
+  <h3><span class="no">3.2</span>记一笔 · 支出</h3>
+  <p><strong>用途：</strong>记录一次花钱，并让它自动从对应账户余额里扣掉。</p>
+  <ol class="steps">
+    <li>点底部中间的 <strong>＋</strong>，弹出「记一笔」面板；默认停在「支出」（红色）。</li>
+    <li><strong>输入金额</strong>：用屏幕数字键盘依次点按。支持小数点（<code>.</code>）、退格（<code>⌫</code>）；
+      左侧 <code>¥</code> 后的大数字就是当前金额，例如依次点 1、2、8 得到 <code>128.00</code>。</li>
+    <li><strong>选分类</strong>：先点一级分类页签（如「餐饮」），再从下方图标网格里点二级分类（如「晚餐」）；
+      选中的格子会变成浅绿底并加粗。点「全部」可回到一级列表。</li>
+    <li><strong>选账户</strong>：在「账户」区域点选付款的账户（现金／支付宝／微信钱包…），被选中的按钮为青色描边。</li>
+    <li><strong>写备注（可选）</strong>：输入框里可直接打字；下方会自动列出你过去用得最多的备注，点一下即可复用。</li>
+    <li><strong>改日期（可选）</strong>：面板底部的日期框默认今天，可改成补记的日期。</li>
+    <li>点右上角<strong>「保存」</strong>，或点键盘右下角的 <code>✓</code>。保存后页面回到首页，新账单出现在最上方，并弹出「已保存」提示。</li>
+  </ol>
+  <figure>
+    <img src="manual/02-add-expense.png" alt="记一笔支出">
+    <figcaption>图 3-2　记一笔（支出）：键盘、分类、账户、备注、日期依次排列</figcaption>
+  </figure>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>键盘连续输入 1、2、8 → 显示 <code>128.00</code>；按一次 <code>⌫</code> → <code>12.00</code>；
+    再输 8 并点 <code>.</code>、<code>5</code> → <code>128.50</code>。<br>
+    选「餐饮 → 晚餐」后该格子高亮，页签自动落在「餐饮」上；选「支付宝」后账户按钮描边变色。
+    保存后：账单 7 → 8 条，支付宝 5,000.00 → 4,872.00，本月支出 6,231.00 → 6,359.00。</p>
+  </div>
+  <div class="box tip">
+    <span class="t">小技巧</span>
+    <p>键盘右侧四个功能键：<code>📅</code> 对应下方日期框、<code>📝</code> 直接把光标跳到备注、
+    <code>✓</code> 相当于「保存」；<code>🖼</code> 为图片凭证入口，当前版本仅提示「图片上传功能演示版未启用」。</p>
+  </div>
+
+  <!-- 3.3 -->
+  <h3><span class="no">3.3</span>记一笔 · 收入与退款关联</h3>
+  <p><strong>用途：</strong>记录工资、兼职、红包等进账；买完东西退款时，把退款挂到原来那笔支出上，方便对账。</p>
+  <ol class="steps">
+    <li>打开「记一笔」后，先点左上角的<strong>「收入」</strong>，金额区数字由红转绿。</li>
+    <li>此时分类面板会自动切换成<strong>收入分类</strong>（工资 / 兼职 / 理财 / 红包 / 退款 / 其他），选一个即可。</li>
+    <li>如果是退款：在<strong>「关联原账单」</strong>区域点选本月某笔支出，系统会自动填入该笔金额、付款账户，
+      并把备注写成「退款：原备注」。再点一次可取消关联。</li>
+    <li>点「保存」。收入会<strong>增加</strong>所选账户的余额。</li>
+  </ol>
+  <figure>
+    <img src="manual/04-add-income.png" alt="记一笔收入">
+    <figcaption>图 3-3　收入模式：金额变绿、分类换成收入分类，并出现「关联原账单」区域</figcaption>
+  </figure>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>切到收入后分类页签变为「全部 / 💼 工资 / ✍️ 兼职 / 📈 理财 / 🧧 红包 / ↩️ 退款 / 💵 其他」。
+    点关联列表第一条（2026-10-14 的 18.00 元支出）后，金额自动变为 <code>18.00</code>，
+    备注自动变为「退款：豆浆油条」，被选中的候选项描边高亮；保存后该账单带有 <code>refundOf</code> 关联标记。</p>
+  </div>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>关联原账单<strong>只自动带金额、账户和备注，不会自动带分类</strong>。退款场景建议在分类里手动选「↩️ 退款」，
+    这样报表里退款与正常收入能分开统计。</p>
+  </div>
+
+  <!-- 3.4 -->
+  <h3><span class="no">3.4</span>账单详情：查看 / 修改 / 删除</h3>
+  <p><strong>用途：</strong>核对某笔账单的完整信息，或修正记错的金额、分类、账户、备注。</p>
+  <ol class="steps">
+    <li>在首页（或搜索结果、日历）里点一条账单，弹出<strong>账单详情</strong>：大字金额、类型、分类、账户、日期、备注，
+      若有关联原账单还会显示可点击的跳转项。</li>
+    <li>点<strong>「✏️ 修改」</strong>进入编辑：面板标题变为「修改账单」，金额、分类、账户、日期、备注全部预填。</li>
+    <li>改完点「保存」。系统会<strong>先撤销原账单对余额的影响，再按新值重新计算</strong>，
+      因此账户余额只按差额变动，账单本身是「原地更新」（id 不变、不会多出一条）。</li>
+    <li>点<strong>「🗑 删除」</strong>，弹出红色二次确认「删除该账单？账户余额会同步回退」，确认后删除并把余额还原。</li>
+  </ol>
+  <div class="figrow">
+    <figure>
+      <img src="manual/05-bill-detail.png" alt="账单详情">
+      <figcaption>图 3-4　详情底部并列「修改 / 删除」</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/06-bill-edit.png" alt="修改账单">
+      <figcaption>图 3-5　修改模式：字段预填、标题变化</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/07-bill-delete-confirm.png" alt="删除确认">
+      <figcaption>图 3-6　删除前的二次确认</figcaption>
+    </figure>
+  </div>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>把一笔 18.00 元的收入改为 666.00 元：保存后账单总量不变（9 条，未新增），该账单 id 未变，
+    关联账户余额按差额 +648 变动（4,890 → 5,538）。删除时账单数 9 → 8，账户余额同步回退。</p>
+  </div>
+  <div class="box tip">
+    <span class="t">余额联动规则</span>
+    <p>支出：保存时从账户<strong>扣减</strong>，删除时<strong>加回</strong>；收入：保存时<strong>增加</strong>，删除时<strong>扣回</strong>；
+    修改：先反向冲销旧值，再套用新值，等价于「只调整差额」。</p>
+  </div>
+
+  <!-- 3.5 -->
+  <h3><span class="no">3.5</span>搜索账单</h3>
+  <p><strong>用途：</strong>在一个月几十上百条记录里快速找到某笔账。</p>
+  <ol class="steps">
+    <li>点顶栏的 <strong>🔍</strong>，弹出「搜索账单」面板。</li>
+    <li>输入关键词。搜索范围包含<strong>备注、分类名（含二级）、账户名、金额、日期、类型</strong>，边输边出结果。</li>
+    <li>结果按日期倒序列出，带「找到 N 条」提示；最多展示 60 条。</li>
+    <li>点任意结果直接进入账单详情，搜索面板会自动收起。</li>
+  </ol>
+  <figure>
+    <img src="manual/26-search.png" alt="搜索">
+    <figcaption>图 3-7　输入「餐」即命中 4 条与餐饮相关的账单</figcaption>
+  </figure>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>搜「餐」返回 4 条（晚餐、午餐、早餐、奶茶咖啡）；搜「128」按金额命中；
+    输入不存在的关键词时显示空状态并提示「换个关键词试试」。</p>
+  </div>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>搜索只覆盖<strong>当前账本</strong>，不跨账本检索。要找家庭账本的记录，请先切换账本再搜。</p>
+  </div>
+
+  <!-- 3.6 -->
+  <h3><span class="no">3.6</span>报表：趋势与分类占比</h3>
+  <p><strong>用途：</strong>看清「哪天花得多」「钱主要花在哪些类别」。</p>
+  <ol class="steps">
+    <li>点底部<strong>「📊 报表」</strong>。上半部分是<strong>收支趋势</strong>：横轴为当月 1–31 日，
+      红线为支出、绿线为收入，带面积填充与图例。</li>
+    <li>下半部分是<strong>分类占比环形图</strong>：圆环中心显示当月总支出，下方列出各分类的金额与百分比。</li>
+    <li>点环形图上方的<strong>「一级 / 二级」</strong>切换粒度：一级看「餐饮／交通」这类大类，二级细到「早餐／午餐」。</li>
+    <li>报表月份跟随首页选择的月份，两边始终一致。</li>
+  </ol>
+  <div class="figrow">
+    <figure>
+      <img src="manual/08-report.png" alt="报表一级">
+      <figcaption>图 3-8　报表页（一级分类）</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/09-report-level2.png" alt="报表二级">
+      <figcaption>图 3-9　切到二级分类后条目更细</figcaption>
+    </figure>
+  </div>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>一级粒度下统计出 4 行，首行为「🏠 居家 5,800.00 / 91.2%」；切到二级后变为 7 行。
+    折线图与环形图均为内置 SVG 绘制，无外部图表库，断网也能正常显示。</p>
+  </div>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>环形图只统计<strong>支出</strong>，收入不参与占比；某月没有支出时图表区为空并提示「当月无支出」。</p>
+  </div>
+
+  <!-- 3.7 -->
+  <h3><span class="no">3.7</span>资产：账户余额与净资产</h3>
+  <p><strong>用途：</strong>管理现金、支付宝、微信、银行卡、信用卡等账户，随时知道「我到底有多少钱」。</p>
+  <ol class="steps">
+    <li>点底部<strong>「💰 资产」</strong>。顶部卡片显示<strong>净资产 / 总资产 / 总负债</strong>，
+      净资产 = 总资产 − 总负债（余额为负的账户计入负债，例如信用卡）。</li>
+    <li>下方按<strong>「资产账户」「负债账户」</strong>分组列出所有账户及余额，点任意账户进入编辑。</li>
+    <li><strong>新增账户</strong>：点「资产账户」右侧的 <strong>＋</strong>，填写账户名称、图标、类型、初始余额。</li>
+    <li><strong>图标</strong>与<strong>类型</strong>都是「可下拉、也可手输」的组合框：点右侧 <code>▾</code> 展开 17 个图标 /
+      6 个支付方式预设，也可以直接键入新值（例如类型写「数字人民币」「美团月付」）。</li>
+    <li><strong>计入总资产</strong>开关：默认打开。关掉后该账户只做记录，不参与净资产计算（适合「代管」「借出」类账户）。</li>
+    <li><strong>编辑 / 删除</strong>：点已有账户即可改名称、余额、开关；编辑面板底部有红色「🗑 删除该账户」，
+      删除前会二次确认，并提示关联了多少笔账单。</li>
+  </ol>
+  <div class="figrow">
+    <figure>
+      <img src="manual/10-asset.png" alt="资产页">
+      <figcaption>图 3-10　资产页：净资产卡片 + 账户列表</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/11-asset-new.png" alt="新建账户">
+      <figcaption>图 3-11　新建账户：图标/类型可下拉可手输</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/12-asset-edited.png" alt="编辑余额">
+      <figcaption>图 3-12　改完余额立即回写列表</figcaption>
+    </figure>
+  </div>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>新增账户「数字人民币」，图标 🪙、类型手输「数字人民币」、余额 300：
+    账户数 5 → 6，类型字段完整保留自定义值。把它余额改为 1,234.50 后列表立即显示「+1,234.50」。
+    删除该账户时弹确认「删除账户"数字人民币"？」，确认后账户数回到 5。</p>
+  </div>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>删除账户<strong>不会删除关联账单</strong>，这些账单会显示为「未选账户」，金额与记录仍然保留。
+    关闭「计入总资产」的账户，其余额变动不会影响净资产数字。</p>
+  </div>
+
+  <!-- 3.8 -->
+  <h3><span class="no">3.8</span>预算：给花钱设一条线</h3>
+  <p><strong>用途：</strong>设定月度总预算与分类预算，超支时首页直接预警。</p>
+  <ol class="steps">
+    <li>进入<strong>「👤 我的 → 🎯 预算」</strong>（首页预算卡右上角的「设置」也能进）。</li>
+    <li>填<strong>月度总预算</strong>，例如 1000；填 0 表示不设预算。</li>
+    <li>在<strong>分类预算</strong>区域为关心的类别单独定额（如餐饮 300、交通 200），留 0 表示该类不设限。</li>
+    <li><strong>「预算结余自动转入下月」</strong>打开后，上月没花完的额度会滚到本月，首页卡片会标注「含结转 X」。</li>
+    <li>点「保存」。回到首页即可看到预算卡：总预算进度条 + 各分类进度条。</li>
+  </ol>
+  <div class="figrow">
+    <figure>
+      <img src="manual/17-budget.png" alt="预算设置">
+      <figcaption>图 3-13　预算设置：总预算、结转开关、分类预算</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/18-home-budget.png" alt="首页预算卡">
+      <figcaption>图 3-14　首页预算卡与超支提示</figcaption>
+    </figure>
+  </div>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>设总预算 1,000、餐饮 300、交通 200，并打开结转：首页显示
+    「总预算（含结转 1,000.00）6,359.00 / 2,000.00　已超支 4,359.00」，餐饮行显示「431.00 / 300.00」进度条转红。
+    各分类预算写入 <code>budgets[l1].categories</code>，刷新后仍然保留。</p>
+  </div>
+  <div class="box tip">
+    <span class="t">颜色规则</span>
+    <p>进度条已用比例 &lt; 80% 为青色；≥ 80% 转为橙色（提醒）；≥ 100% 转为红色并显示「已超支 X」。
+    预算只是提醒，<strong>不会阻止你继续记账</strong>。</p>
+  </div>
+
+  <!-- 3.9 -->
+  <h3><span class="no">3.9</span>日历：按天回看</h3>
+  <p><strong>用途：</strong>用月历的视角看「哪些天有收支」，并快速查看某一天的明细。</p>
+  <ol class="steps">
+    <li>点顶栏的 <strong>📅</strong>（或「我的 → 日历」）打开日历视图。</li>
+    <li>月历中，当天用青色圆角块标出；有支出的日期下方显示<strong>红点</strong>，只有收入则显示<strong>绿点</strong>。</li>
+    <li>点某个日期，下方卡片显示该日账单明细，点明细同样可进入账单详情。</li>
+    <li>用 <code>‹</code> <code>›</code> 翻月；右上角「回到今天」一键跳回当月并选中今天。</li>
+  </ol>
+  <figure>
+    <img src="manual/19-calendar.png" alt="日历">
+    <figcaption>图 3-15　日历视图：17 号被选中，下方列出当日的那笔 128 元晚餐</figcaption>
+  </figure>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>2026 年 10 月渲染出 35 个格子，其中 6 天带收支圆点；点击 10-07 后下方正确列出当日账单；
+    翻到 9 月再点「回到今天」能准确回到 2026年10月。</p>
+  </div>
+
+  <!-- 3.10 -->
+  <h3><span class="no">3.10</span>账本管理</h3>
+  <p><strong>用途：</strong>把「个人」「家庭」「旅行」「装修」等不同场景的账分开，互不干扰。</p>
+  <ol class="steps">
+    <li>点左上角账本胶囊（如「👤 个人账本 ⌄」）打开账本列表，当前账本后打勾 <code>✓</code>。</li>
+    <li><strong>切换</strong>：点任意其他账本，顶栏、账户、分类、账单、预算会整体切换。</li>
+    <li><strong>新建</strong>：点右上角「＋ 新建」，填名称、图标（Emoji）、币种符号，保存后出现在列表里。</li>
+    <li><strong>编辑</strong>：点<strong>当前</strong>账本那一行即进入编辑（改名、换图标）；列表项也支持右键打开编辑。</li>
+  </ol>
+  <div class="figrow">
+    <figure>
+      <img src="manual/13-ledger-list.png" alt="账本列表">
+      <figcaption>图 3-16　账本列表，✓ 为当前账本</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/14-ledger-edit.png" alt="新建账本">
+      <figcaption>图 3-17　新建 / 编辑账本</figcaption>
+    </figure>
+  </div>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>初始 3 个账本；切到「家庭账本」后账户列表由 5 个变为 2 个（家庭现金、家庭支付宝），账单也随之清空。
+    新建「🔨 装修账本」后账本数 3 → 4，并自动带上独立的空预算表；点当前账本「个人账本」正确进入「编辑账本」并带出原名。</p>
+  </div>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>当前版本<strong>不提供账本删除</strong>，只有新建与编辑。若只是想停用某个账本，建议改名加前缀（如「[停用] 旅行账本」）以免误用。</p>
+  </div>
+
+  <!-- 3.11 -->
+  <h3><span class="no">3.11</span>分类管理</h3>
+  <p><strong>用途：</strong>定制自己的分类体系，把默认分类改得更贴合习惯。</p>
+  <ol class="steps">
+    <li>进入<strong>「我的 → 🏷️ 分类管理」</strong>，顶部可切换<strong>支出 / 收入</strong>两套分类。</li>
+    <li>列表按「一级分类 + 缩进的二级分类」展示，每行右侧有 <code>✎</code>（编辑）和 <code>🗑</code>（删除）。</li>
+    <li><strong>新建一级分类</strong>：点右上角「＋ 新建」，填名称、图标、类型（支出/收入），父分类留空。</li>
+    <li><strong>新建二级分类</strong>：点某个一级分类下方的「＋ 添加二级分类」，或新建时在「父分类」里选上级。</li>
+    <li>保存后立即生效，回到记一笔面板即可看到新分类。</li>
+  </ol>
+  <figure>
+    <img src="manual/16-cat-manage.png" alt="分类管理">
+    <figcaption>图 3-18　分类管理：一级加粗、二级缩进，均可编辑与删除</figcaption>
+  </figure>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>支出分类下有 27 个可编辑项。在「餐饮」下新建二级分类「🌙 夜宵」，保存后立即出现在列表中；
+    点删除时弹出二次确认，确认后该分类从数据中移除。切到「收入」页签正确显示 6 行收入分类。</p>
+  </div>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>删除一级分类会<strong>连同其下所有二级分类一起删除</strong>，确认框会告诉你牵连几个二级分类；
+    被删分类下的账单不会消失，只会变成「未分类」，可在账单详情里重新指定分类。</p>
+  </div>
+
+  <!-- 3.12 -->
+  <h3><span class="no">3.12</span>导出与导入</h3>
+  <p><strong>用途：</strong>备份数据、迁移到其他设备，或把账单交给 Excel 做进一步分析。</p>
+  <h4>导出</h4>
+  <ol class="steps">
+    <li>进入<strong>「我的 → 📤 导出数据」</strong>。</li>
+    <li>选<strong>格式</strong>：<code>JSON 全量</code> 备份所有数据（账本、账户、分类、预算、账单），
+      <code>CSV 账单</code> 只导出账单表格，方便 Excel 打开。</li>
+    <li>选<strong>范围</strong>：<code>全部</code> 或 <code>当前账本</code>。</li>
+    <li>点右上角「下载」，文件名为 <code>qingzhang_YYYY-MM-DD.json</code> / <code>.csv</code>。</li>
+  </ol>
+  <figure>
+    <img src="manual/20-export.png" alt="导出">
+    <figcaption>图 3-19　导出面板：格式与范围各二选一</figcaption>
+  </figure>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>导出的 JSON 含 <code>ledgers / accounts / categories / bills / budgets</code> 等完整字段，账单条数与页面一致。
+    CSV 表头为「日期,类型,分类,账户,金额,备注,转账对方」，行数 = 账单数 + 1，并带 UTF-8 BOM，Excel 打开中文不乱码。</p>
+  </div>
+  <h4>导入</h4>
+  <ol class="steps">
+    <li>进入<strong>「我的 → 📥 导入数据」</strong>，选择之前导出的 JSON 文件。</li>
+    <li>选择方式：<strong>合并</strong>（保留现有数据，按 id 去重后追加重叠以外的数据）或
+      <strong>覆盖</strong>（清空现有数据后整体替换，会让你二次确认）。</li>
+    <li>点「导入」，成功后自动关闭面板并提示「已合并导入」/「已导入」。</li>
+  </ol>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>「覆盖」不可撤销。若不确定，先导出一次 JSON 备份，再执行覆盖导入。
+    重复导入同一个备份文件不会产生重复账单（相同 id 会被跳过）。</p>
+  </div>
+
+  <!-- 3.13 -->
+  <h3><span class="no">3.13</span>深色模式</h3>
+  <p><strong>用途：</strong>夜间记账不刺眼。</p>
+  <ol class="steps">
+    <li>进入<strong>「我的」</strong>，点<strong>「🌙 深色模式」</strong>这一行，开关变青即开启。</li>
+    <li>切换即时生效，四个页签、图表、弹层全部适配深色；设置会随数据一起保存，下次打开仍是深色。</li>
+    <li>再点一次即可切回浅色。</li>
+  </ol>
+  <div class="figrow">
+    <figure>
+      <img src="manual/22-home-dark.png" alt="深色首页">
+      <figcaption>图 3-20　深色模式 · 首页</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/23-report-dark.png" alt="深色报表">
+      <figcaption>图 3-21　深色模式 · 报表（图表同步换色）</figcaption>
+    </figure>
+    <figure>
+      <img src="manual/21-me-dark.png" alt="深色我的">
+      <figcaption>图 3-22　深色模式 · 我的</figcaption>
+    </figure>
+  </div>
+
+  <!-- 3.14 -->
+  <h3><span class="no">3.14</span>PIN 锁</h3>
+  <p><strong>用途：</strong>给应用加一道 4 位数字锁，防止手机被别人随手翻开。</p>
+  <ol class="steps">
+    <li>进入<strong>「我的 → 🔒 设置 PIN 锁」</strong>，输入两次相同的 4 位数字，点「保存」。</li>
+    <li>刷新或重新打开页面时，先出现锁屏；输入正确 PIN 才会进入主界面。</li>
+    <li>输错会提示「PIN 错误」并清空已输入的圆点，可重试。</li>
+    <li><strong>关闭 PIN</strong>：再次进入设置，先填「当前 PIN」，把「新 PIN / 确认 PIN」留空后保存。</li>
+  </ol>
+  <figure>
+    <img src="manual/24-lock.png" alt="锁屏">
+    <figcaption>图 3-23　锁屏：4 个圆点 + 数字键盘</figcaption>
+  </figure>
+  <div class="box test">
+    <span class="t">实测记录</span>
+    <p>设 PIN 为 1234 后，存储里保存的是<strong>哈希值而非明文</strong>；刷新页面出现锁屏，
+    输入 0000 提示「PIN 错误」，输入 1234 正常解锁；再次进入设置并留空保存后，<code>pinHash</code> 被清为 null，锁屏不再出现。</p>
+  </div>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>PIN 只是「防顺手一看」的轻量保护，数据本身没有加密，不要用它保存敏感信息。
+    <strong>忘记 PIN 将无法进入应用</strong>，只能清除该站点的浏览器数据（会同时清掉账本），因此设置前请先导出一份 JSON 备份。</p>
+  </div>
+
+  <!-- 3.15 -->
+  <h3><span class="no">3.15</span>关于</h3>
+  <p>「我的 → ℹ️ 关于小青账」展示版本信息与技术说明，可确认当前使用的是 HTML 复刻版以及数据全部本地存储的特性。</p>
+  <figure>
+    <img src="manual/25-about.png" alt="关于">
+    <figcaption>图 3-24　关于页</figcaption>
+  </figure>
+
+  <!-- 3.16 -->
+  <h3><span class="no">3.16</span>「我的」页一览</h3>
+  <p>这一页是各类设置的总入口：上方四个快捷方块（账本管理 / 分类管理 / 预算 / 日历），下方是导出、导入、深色模式、PIN 锁、关于。</p>
+  <figure>
+    <img src="manual/15-me.png" alt="我的页">
+    <figcaption>图 3-25　我的页：设置与数据管理的统一入口</figcaption>
+  </figure>
+
+  <!-- ================= 4 ================= -->
+  <h2 id="c4"><span class="no">04</span>使用示例</h2>
+  <p>下面四个场景串起了日常最常用的操作链路，可以照着做一遍熟悉手感。</p>
+
+  <h3><span class="no">4.1</span>场景一：记一顿 128 元的午饭</h3>
+  <ol class="steps">
+    <li>点 <strong>＋</strong> → 键盘点 <code>1</code> <code>2</code> <code>8</code>，金额显示 <code>128.00</code>。</li>
+    <li>分类页签点「🍱 餐饮」→ 图标网格点「🍚 午餐」。</li>
+    <li>账户区点「🅰️ 支付宝」。</li>
+    <li>备注填「和同事聚餐」。</li>
+    <li>点「保存」。首页出现「午餐 · 餐饮-午餐 · 支付宝 · 和同事聚餐　−128.00」，支付宝余额 −128。</li>
+  </ol>
+
+  <h3><span class="no">4.2</span>场景二：工资到账 + 一笔退款</h3>
+  <ol class="steps">
+    <li>＋ → 切到<strong>「收入」</strong> → 键盘输入 <code>12000</code> → 分类选「💼 工资」→ 账户选「🏦 招行储蓄卡」→ 备注「10 月工资」→ 保存。</li>
+    <li>几天后早餐店退款 18 元：＋ → 收入 → 在「关联原账单」里点那笔 18 元的早餐支出。</li>
+    <li>金额与备注自动带出（备注为「退款：豆浆油条」），分类手动选「↩️ 退款」→ 保存。</li>
+    <li>打开这笔退款的详情，底部会显示「关联原账单 2026-10-14 · 18.00」，点它可跳到原来那笔支出核对。</li>
+  </ol>
+
+  <h3><span class="no">4.3</span>场景三：月末复盘 + 设下月预算</h3>
+  <ol class="steps">
+    <li>回首页看本月结余与预算卡，红色进度条表示已超支的类别。</li>
+    <li>进「📊 报表」，先看趋势图找出花得最猛的那几天，再切到「二级」看具体是哪些子类拉高了支出。</li>
+    <li>进「我的 → 预算」，把下月总预算与几个重点分类填上，打开「结余转入下月」把本月剩余额度滚过去。</li>
+    <li>进「我的 → 导出数据」导出一次 JSON，作为这个月的存档。</li>
+  </ol>
+
+  <h3><span class="no">4.4</span>场景四：换手机 / 换浏览器迁移数据</h3>
+  <ol class="steps">
+    <li>旧设备：「我的 → 导出数据」→ 选 <code>JSON 全量</code> + <code>全部</code> → 下载，得到 <code>qingzhang_2026-10-17.json</code>。</li>
+    <li>把文件传到新设备（微信文件传输助手、网盘、数据线均可）。</li>
+    <li>新设备打开同一个 HTML（或同一个在线地址）→「我的 → 导入数据」→ 选择该文件 → 选「覆盖」→「导入」。</li>
+    <li>打开首页核对账单条数与账户余额，一致即迁移完成。</li>
+  </ol>
+  <div class="box warn">
+    <span class="t">注意</span>
+    <p>迁移后两台设备各自独立，不会自动同步。若两边都在记账，再次「合并」导入即可把新增记录合并进来（相同 id 自动跳过）。</p>
+  </div>
+
+  <!-- ================= 5 ================= -->
+  <h2 id="c5"><span class="no">05</span>数据存储与备份</h2>
+  <p>所有数据都放在当前浏览器的 localStorage 里，键名为 <code>qingzhang.v1</code>，结构大致如下：</p>
+  <pre><span class="c">// localStorage["qingzhang.v1"]</span>
+{
+  <span class="k">"ledgers"</span>:    [ { <span class="k">"id"</span>:<span class="s">"l1"</span>, <span class="k">"name"</span>:<span class="s">"个人账本"</span>, <span class="k">"icon"</span>:<span class="s">"👤"</span>, <span class="k">"currency"</span>:<span class="s">"¥"</span> } ],
+  <span class="k">"accounts"</span>:   [ { <span class="k">"id"</span>:<span class="s">"a2"</span>, <span class="k">"ledgerId"</span>:<span class="s">"l1"</span>, <span class="k">"name"</span>:<span class="s">"支付宝"</span>,
+                    <span class="k">"type"</span>:<span class="s">"支付宝"</span>, <span class="k">"balance"</span>:<span class="s">4872</span>, <span class="k">"includeInTotal"</span>:<span class="s">true</span> } ],
+  <span class="k">"categories"</span>: [ { <span class="k">"id"</span>:<span class="s">"c1c"</span>, <span class="k">"name"</span>:<span class="s">"晚餐"</span>, <span class="k">"type"</span>:<span class="s">"expense"</span>,
+                    <span class="k">"parentId"</span>:<span class="s">"c1"</span>, <span class="k">"icon"</span>:<span class="s">"🍜"</span> } ],
+  <span class="k">"bills"</span>:      [ { <span class="k">"id"</span>:<span class="s">"b…"</span>, <span class="k">"type"</span>:<span class="s">"expense"</span>, <span class="k">"amount"</span>:<span class="s">128</span>,
+                    <span class="k">"accountId"</span>:<span class="s">"a2"</span>, <span class="k">"categoryId"</span>:<span class="s">"c1c"</span>, <span class="k">"date"</span>:<span class="s">"2026-10-17"</span>,
+                    <span class="k">"remark"</span>:<span class="s">"和同事聚餐"</span>, <span class="k">"refundOf"</span>:<span class="s">null</span> } ],
+  <span class="k">"budgets"</span>:    { <span class="s">"l1"</span>: { <span class="k">"total"</span>:<span class="s">1000</span>, <span class="k">"carryOver"</span>:<span class="s">true</span>, <span class="k">"categories"</span>:{ <span class="s">"c1"</span>:<span class="s">300</span> } } },
+  <span class="k">"pinHash"</span>:    <span class="s">"-6wp8j5…"</span>,
+  <span class="k">"settings"</span>:   { <span class="k">"theme"</span>:<span class="s">"light"</span> }
+}</pre>
+
+  <h3><span class="no">5.1</span>三条备份原则</h3>
+  <ul>
+    <li><strong>定期导出 JSON</strong>：建议每月结账后导一次，文件保留在网盘或电脑上。</li>
+    <li><strong>别在隐私模式里记账</strong>：无痕窗口关闭即清空存储。</li>
+    <li><strong>清理浏览器数据时留意</strong>：勾选「Cookie 及其他网站数据」会连带清掉 localStorage，账本一并消失。</li>
+  </ul>
+
+  <!-- ================= 6 ================= -->
+  <h2 id="c6"><span class="no">06</span>常见问题与注意事项</h2>
+
+  <h3><span class="no">6.1</span>常见问题</h3>
+  <table>
+    <thead><tr><th style="width:34%">问题</th><th>解答</th></tr></thead>
+    <tbody>
+      <tr><td>数据存在哪里？别人能看到吗？</td><td>存在你当前浏览器的 localStorage 中，不上传服务器；同一台设备的其他浏览器、其他设备都看不到。</td></tr>
+      <tr><td>分享链接给别人，他们会看到我的账吗？</td><td>不会。每个人打开都是自己浏览器里的一套数据，互不影响；但这也意味着<strong>不能多人共享同一个账本</strong>。</td></tr>
+      <tr><td>换手机怎么把账搬过去？</td><td>旧设备导出 JSON → 新设备导入（覆盖）。参考场景 4.4。</td></tr>
+      <tr><td>金额记错了怎么办？</td><td>点开账单 →「✏️ 修改」改数字即可，账户余额会自动按差额调整，不需要删了重记。</td></tr>
+      <tr><td>为什么账户余额和我实际不一致？</td><td>账户余额 = 初始余额 + 收入 − 支出。若某笔账单记错了账户或删过账户，可在「资产」里编辑账户、直接改为实际余额。</td></tr>
+      <tr><td>导出 CSV 打开是乱码？</td><td>文件已带 UTF-8 BOM，用 Excel / WPS 直接双击打开即可；若用记事本另存，请保持 UTF-8 编码。</td></tr>
+      <tr><td>忘记 PIN 了还能进吗？</td><td>不能。只能清除该站点浏览器数据（会丢失账本）。因此设置 PIN 前务必备份 JSON。</td></tr>
+      <tr><td>预算超了还能继续记吗？</td><td>能。预算只是提醒，不会拦截记账。</td></tr>
+      <tr><td>为什么首页和报表的数字一样，但和资产不同？</td><td>首页/报表统计的是<strong>当月流水</strong>；资产页看的是<strong>账户余额与净资产</strong>，两者口径不同。</td></tr>
+      <tr><td>为什么分类里选不到「收入」分类？</td><td>先点「记一笔」左上角的「收入」，分类面板会自动切换到收入分类；两套分类互不通用。</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="no">6.2</span>十条注意事项</h3>
+  <ol>
+    <li><strong>数据只在本机浏览器。</strong>清除浏览数据、换浏览器、换设备都看不到原数据，务必定期导出备份。</li>
+    <li><strong>没有账号、没有云同步。</strong>同一链接在不同设备上是两份独立数据。</li>
+    <li><strong>修改账单是「原地更新」。</strong>保存后不会多出一条，账户余额只按差额变动。</li>
+    <li><strong>删除账单会回退余额。</strong>删除后账户余额会恢复到没记这笔之前的状态。</li>
+    <li><strong>删除账户不删账单。</strong>相关账单会显示为「未选账户」，可进入详情重新指定账户。</li>
+    <li><strong>删除一级分类会级联删除其二级分类。</strong>确认框会提示牵连数量，账单本身保留但变为「未分类」。</li>
+    <li><strong>账本之间完全隔离。</strong>切换账本后账户、分类、账单、预算全部换一套，跨账本不会合并统计。</li>
+    <li><strong>收入与支出分类各成体系。</strong>记账前先选类型，分类面板会自动跟着切换。</li>
+    <li><strong>覆盖导入不可撤销。</strong>执行前先导出一次 JSON。</li>
+    <li><strong>首次打开的 7 条示例账单可以直接删掉</strong>，账户初始余额也可在「资产」里改成自己的实际数字。</li>
+  </ol>
+
+  <div class="box warn">
+    <span class="t">已知限制</span>
+    <p>
+      ① 不支持图片/票据上传（键盘 <code>🖼</code> 仅提示未启用）；
+      ② 不支持转账（原版应用的转账功能在复刻版中已移除，历史转账账单仍可查看）；
+      ③ 无账号体系与云同步；
+      ④ 不支持支付宝 / 微信账单自动导入（仅支持本应用导出的 JSON/CSV）；
+      ⑤ 账本只能新建与编辑，暂不支持删除；
+      ⑥ 金额仅支持人民币符号展示，不处理多币种汇率换算。
+    </p>
+  </div>
+
+  <!-- ================= 7 ================= -->
+  <h2 id="c7"><span class="no">07</span>附录：实测报告</h2>
+  <p>
+    本说明书编写前，用浏览器自动化对应用做了 <strong>18 组、136 项</strong>功能检查，
+    覆盖四个页签、全部弹层与核心数据联动，结果：<strong>136 项全部通过，控制台 0 报错</strong>。
+    测试环境：Chromium 无头浏览器，视口 414 × 896（iPhone 竖屏），数据从空 localStorage 开始初始化。
+  </p>
+
+  <table>
+    <thead><tr><th style="width:8%">#</th><th style="width:44%">测试模块</th><th style="width:14%">检查项</th><th>结果</th></tr></thead>
+    <tbody>
+      <tr><td>00</td><td>初始化与默认数据</td><td class="num">6</td><td>全部通过</td></tr>
+      <tr><td>01</td><td>首页：月度汇总 + 账单列表</td><td class="num">6</td><td>全部通过</td></tr>
+      <tr><td>02</td><td>记一笔 · 支出（键盘/分类/账户/备注）</td><td class="num">13</td><td>全部通过</td></tr>
+      <tr><td>03</td><td>记一笔 · 收入 + 退款关联</td><td class="num">11</td><td>全部通过</td></tr>
+      <tr><td>04</td><td>账单详情：查看 / 修改 / 删除</td><td class="num">12</td><td>全部通过</td></tr>
+      <tr><td>05</td><td>报表：趋势折线 + 分类占比</td><td class="num">5</td><td>全部通过</td></tr>
+      <tr><td>06</td><td>资产：净资产 / 账户增删改</td><td class="num">18</td><td>全部通过</td></tr>
+      <tr><td>07</td><td>账本：切换 / 新建 / 编辑</td><td class="num">10</td><td>全部通过</td></tr>
+      <tr><td>08</td><td>分类管理：新增 / 编辑 / 删除</td><td class="num">8</td><td>全部通过</td></tr>
+      <tr><td>09</td><td>预算：总预算 / 分类预算 / 超支预警</td><td class="num">8</td><td>全部通过</td></tr>
+      <tr><td>10</td><td>日历视图</td><td class="num">7</td><td>全部通过</td></tr>
+      <tr><td>11</td><td>导出：JSON / CSV</td><td class="num">8</td><td>全部通过</td></tr>
+      <tr><td>12</td><td>导入：合并模式</td><td class="num">4</td><td>全部通过</td></tr>
+      <tr><td>13</td><td>深色模式</td><td class="num">3</td><td>全部通过</td></tr>
+      <tr><td>14</td><td>PIN 锁：设置 / 校验 / 解锁 / 关闭</td><td class="num">7</td><td>全部通过</td></tr>
+      <tr><td>15</td><td>关于页</td><td class="num">1</td><td>全部通过</td></tr>
+      <tr><td>16</td><td>搜索：关键词匹配 + 空状态</td><td class="num">6</td><td>全部通过</td></tr>
+      <tr><td>17</td><td>数据持久化（刷新后保留）</td><td class="num">3</td><td>全部通过</td></tr>
+      <tr><td colspan="2"><strong>合计</strong></td><td class="num"><strong>136</strong></td><td><strong>通过 136 / 失败 0 / 控制台错误 0</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="no">7.1</span>关键实测数据</h3>
+  <table>
+    <thead><tr><th style="width:40%">场景</th><th>实测结果</th></tr></thead>
+    <tbody>
+      <tr><td>初始数据</td><td>3 个账本 / 5 个个人账户 / 33 个分类 / 7 条示例账单</td></tr>
+      <tr><td>记一笔支出 128 元</td><td>账单 7 → 8 条；支付宝 5,000.00 → 4,872.00；本月支出 6,231.00 → 6,359.00</td></tr>
+      <tr><td>修改账单 18 → 666 元</td><td>账单总数不变；id 不变；账户余额 4,890 → 5,538（按差额联动）</td></tr>
+      <tr><td>删除账单</td><td>账单 9 → 8；账户余额回退；二次确认文案「删除该账单？账户余额会同步回退」</td></tr>
+      <tr><td>新增自定义账户</td><td>账户 5 → 6；类型保存为自定义值「数字人民币」；删除后回到 5</td></tr>
+      <tr><td>报表</td><td>一级 4 行 / 二级 7 行；首行「🏠 居家 5,800.00 91.2%」</td></tr>
+      <tr><td>资产汇总</td><td>净资产 +17,172.00；总资产 18,672.00；总负债 1,500.00</td></tr>
+      <tr><td>预算（含结转）</td><td>总预算 1,000 + 结转 1,000 → 可用 2,000；已用 6,359 → 「已超支 4,359.00」</td></tr>
+      <tr><td>日历</td><td>10 月渲染 35 格，6 天有收支圆点；点日期正确列出当日明细</td></tr>
+      <tr><td>导出</td><td><code>qingzhang_2026-10-17.json</code> 字段完整；CSV 9 行（含表头）、带 BOM</td></tr>
+      <tr><td>搜索「餐」</td><td>命中 4 条；无结果时显示空状态；点结果进入详情并自动收起搜索面板</td></tr>
+      <tr><td>PIN 锁</td><td>存储为哈希值；错误 PIN 提示「PIN 错误」；正确 PIN 解锁；留空保存即关闭</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="no">7.2</span>本次测试中修正的问题</h3>
+  <p>测试过程发现并修复了以下 5 处问题，文中描述的行为均为修复后的实际表现：</p>
+  <ol>
+    <li><strong>关于页打不开</strong>：点击「关于小青账」会因引用不存在的按钮元素抛出异常，弹层无法显示 → 已移除该引用，现在可正常打开。</li>
+    <li><strong>「预算结余自动转入下月」开关点不动</strong>：开关元素未绑定点击事件 → 已补上事件，并实现了真实的结转计算（上月未用完额度计入本月可用预算）。</li>
+    <li><strong>顶栏 🔍 搜索按钮无反应</strong>：按钮没有任何事件绑定 → 已实现搜索面板，支持按备注/分类/账户/金额/日期检索。</li>
+    <li><strong>收入模式下分类面板仍显示支出分类</strong>：导致收入无法正确归类 → 已改为按当前收支类型渲染分类，两套分类互不混用。</li>
+    <li><strong>选中二级分类后看不出选中了谁</strong>：分类面板会弹回一级列表导致高亮丢失 → 已改为停留在当前一级分类下，选中项保持高亮。</li>
+  </ol>
+
+  <div class="foot">
+    <span>小青账 · HTML 复刻版　使用说明书 v1.0</span>
+    <span>实测 2026-10-17 · 18 组 136 项全部通过</span>
+  </div>
+
+</div>
+
+<div class="online-bar">
+  <a class="obtn primary" href="https://qingzhang-ledger-63298.app.workbuddy.host/" target="_blank" rel="noopener">打开小青账 ↗</a>
+  <a class="obtn" href="#top">回到顶部</a>
+</div>
+<style>
+  body{padding-bottom:0}
+  .doc{padding-bottom:112px}
+  .online-bar{position:fixed;right:20px;bottom:20px;display:flex;gap:8px;z-index:99}
+  .online-bar .obtn{display:inline-flex;align-items:center;gap:4px;padding:9px 16px;border-radius:999px;
+    font-size:13px;text-decoration:none;color:#334642;background:#fff;border:1px solid #e3e9e8;
+    box-shadow:0 6px 20px rgba(20,40,38,.14);transition:transform .15s ease,box-shadow .15s ease}
+  .online-bar .obtn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(20,40,38,.18)}
+  .online-bar .obtn.primary{background:#0e9f96;border-color:#0e9f96;color:#fff}
+  @media (max-width:760px){
+    .doc{padding-bottom:96px}
+    .online-bar{right:12px;bottom:12px}
+    .online-bar .obtn{padding:8px 13px;font-size:12.5px}
+  }
+  @media print{ .online-bar{display:none!important} .doc{padding-bottom:0} }
+</style>
+</body>
+</html>
