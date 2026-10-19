@@ -2,9 +2,11 @@
 
 一个**单文件、零依赖、纯本地**的轻量记账应用。双击 HTML 就能用，不需要装 App、不需要注册、不联网、没有后端 —— 数据全部存在浏览器的 `localStorage` 里。
 
-👉 **在线体验**：https://qingzhang-ledger-63298.app.workbuddy.host/
+👉 **在线体验**：[GitHub Pages](https://a369096433.github.io/qingzhang/) · [备用地址](https://qingzhang-ledger-63298.app.workbuddy.host/)
 
 > 手机上打开链接后，用 Safari / Chrome 的「添加到主屏幕」，体验跟原生 App 基本一致（有独立图标、全屏、无地址栏）。
+>
+> 📖 [图文使用说明](https://a369096433.github.io/qingzhang/guide.html)
 
 ---
 
