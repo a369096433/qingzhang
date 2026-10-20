@@ -271,6 +271,12 @@
       60% { box-shadow: 0 0 0 4px rgba(192,68,47,0); }
       100% { box-shadow: 0 0 0 0 rgba(192,68,47,0); }
     }
+    /* 未设置预算时的引导块（所有账本通用） */
+    .budget-empty { text-align: center; padding: 14px 8px 4px; }
+    .budget-empty .msg { font-size: 13px; color: var(--text-2); }
+    .budget-empty .empty-hint { font-size: 11.5px; color: var(--text-3); margin-top: 6px; letter-spacing: .3px; }
+    /* 预算弹窗顶部的账本归属提示 */
+    .budget-scope { font-size: 12px; color: var(--text-3); margin: -6px 0 12px; }
 
     /* ============ 账单列表 ============ */
     .bill-section { margin-bottom: 10px; }
@@ -1326,6 +1332,7 @@
         <button class="save" id="saveBudget">保存</button>
       </div>
       <div class="modal-body">
+        <div class="budget-scope" id="bgScope">当前账本</div>
         <div class="field">
           <label>月度总预算</label>
           <input type="number" id="bgTotal" step="0.01" placeholder="0 表示不设">
@@ -2035,8 +2042,10 @@
       $('#mPrev').onclick = () => goMonth(-1);
       $('#mNext').onclick = () => goMonth(1);
 
-      // 预算卡片
-      const bg = (DATA.budgets[STATE.activeLedger] || { total: 0, categories: {} });
+      // 预算卡片：所有账本（个人/家庭/旅行/自定义）都展示，未设置时提供「新增」入口
+      const bg = (DATA.budgets[STATE.activeLedger] || { total: 0, carryOver: false, categories: {} });
+      const catBudgetEntries = Object.entries(bg.categories || {}).filter(([, v]) => v > 0);
+      const hasBudget = bg.total > 0 || catBudgetEntries.length > 0;
       let budgetCardHtml = '';
       if (bg.total > 0) {
         // 结余结转：上月未用完的预算滚入本月
@@ -2058,7 +2067,6 @@
         <div style="font-size:11.5px;margin-top:6px;color:${remaining >= 0 ? 'var(--text-3)' : 'var(--danger)'};font-weight:${remaining >= 0 ? '400' : '600'}">${remaining >= 0 ? '剩余 ' + fmtNum(remaining) : '已超支 ' + fmtNum(-remaining)}</div>`;
       }
       // 分类预算
-      const catBudgetEntries = Object.entries(bg.categories || {}).filter(([, v]) => v > 0);
       if (catBudgetEntries.length) {
         catBudgetEntries.forEach(([cid, val]) => {
           const cat = categoryById(cid);
@@ -2076,13 +2084,19 @@
           <div class="progress"><div class="progress-bar ${cls}" style="width:${p}%"></div></div>`;
         });
       }
-      if (budgetCardHtml) {
-        $('#budgetCard').innerHTML = `<div class="card-title"><span>本月预算</span><span class="more" id="editBudgetBtn">设置</span></div>${budgetCardHtml}`;
-        $('#budgetCard').style.display = '';
-        $('#editBudgetBtn').onclick = openBudgetEditor;
+      if (hasBudget) {
+        $('#budgetCard').innerHTML = `<div class="card-title"><span>本月预算</span><span class="more" id="editBudgetBtn">修改</span></div>${budgetCardHtml}`;
       } else {
-        $('#budgetCard').style.display = 'none';
+        $('#budgetCard').innerHTML = `<div class="card-title"><span>本月预算</span><span class="more" id="editBudgetBtn">新增</span></div>
+          <div class="budget-empty">
+            <div class="msg">还没有设置本月预算</div>
+            <div class="empty-hint">设置后可在这里看到已用与剩余进度</div>
+            <button class="btn ghost" id="addBudgetBtn" style="margin-top:14px;padding:9px 20px;font-size:13px">设置本月预算</button>
+          </div>`;
+        $('#addBudgetBtn').onclick = openBudgetEditor;
       }
+      $('#editBudgetBtn').onclick = openBudgetEditor;
+      $('#budgetCard').style.display = '';
 
       // 账单列表（按日期分组）
       const wrap = $('#billsWrap');
@@ -2846,8 +2860,15 @@
        ==================================================================== */
     $$('[data-go="budgets"]').forEach(b => b.addEventListener('click', openBudgetEditor));
     function openBudgetEditor() {
-      const bg = DATA.budgets[STATE.activeLedger] || { total: 0, carryOver: false, categories: {} };
+      // 所有账本都可编辑预算：不存在或结构不完整时按空预算补齐
+      let bg = DATA.budgets[STATE.activeLedger];
+      if (!bg || typeof bg !== 'object') bg = { total: 0, carryOver: false, categories: {} };
+      if (!bg.categories) bg.categories = {};
       DATA.budgets[STATE.activeLedger] = bg;
+      // 提示当前编辑的是哪个账本，避免多账本时改错对象
+      const led = ledgerById(STATE.activeLedger);
+      const scopeEl = $('#bgScope');
+      if (scopeEl) scopeEl.textContent = '当前账本：' + (led ? led.name : '—');
       $('#bgTotal').value = bg.total || 0;
       $('#bgCarry').classList.toggle('on', !!bg.carryOver);
       const list = $('#bgCatList');
@@ -3633,7 +3654,7 @@
         <div style="text-align:center;padding:20px 0">
           <div style="width:76px;height:76px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto">${svgOf('leaf', 40)}</div>
           <div style="font-size:20px;font-weight:700;margin-top:12px;letter-spacing:2px">小青账</div>
-          <div style="font-size:12px;color:var(--text-3);margin:4px 0 20px">HTML 复刻版 · v1.1<span style="opacity:.7"> · 2026-10-20</span></div>
+          <div style="font-size:12px;color:var(--text-3);margin:4px 0 20px">HTML 复刻版 · v1.2<span style="opacity:.7"> · 2026-10-20</span></div>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7">
             原版参考：小青账 (pro.youqian.bill)<br>
             本复刻为学习/演示用途，纯前端实现：<br>
