@@ -277,6 +277,60 @@
     .budget-empty .empty-hint { font-size: 11.5px; color: var(--text-3); margin-top: 6px; letter-spacing: .3px; }
     /* 预算弹窗顶部的账本归属提示 */
     .budget-scope { font-size: 12px; color: var(--text-3); margin: -6px 0 12px; }
+    /* 本月预算卡片右上角的操作按钮（整卡也可点） */
+    .budget-action {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 13px; border-radius: 999px;
+      font-size: 12px; font-weight: 500; letter-spacing: .2px;
+      color: var(--primary); background: var(--bg-soft);
+      border: 1px solid var(--border); cursor: pointer;
+    }
+    .budget-action:active { opacity: .8; transform: scale(.98); }
+    #budgetCard { cursor: pointer; }
+
+    /* 分类预算：每行可改名/删除，底部可新增（支持自定义分类） */
+    .bg-cat-empty { font-size: 12.5px; color: var(--text-3); padding: 6px 2px; line-height: 1.6; }
+    .bg-cat-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .bg-cat-picker { margin-top: 10px; background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+    .bg-cat-picker[hidden] { display: none; }
+    .bg-cat-picker .tt { font-size: 11.5px; color: var(--text-3); margin-bottom: 8px; letter-spacing: .3px; }
+    .bg-cat-picker .picks { display: flex; flex-wrap: wrap; gap: 8px; }
+    .bg-cat-row .n { cursor: pointer; }
+    .bg-cat-row .n:active { color: var(--primary); }
+
+    /* 账本列表行内的修改/删除按钮 */
+    .ledger-ops { display: flex; align-items: center; gap: 2px; flex: none; }
+    .ledger-ops .icon-btn { width: 36px; height: 36px; }
+    .field[hidden] { display: none; }
+    .ledger-del-hint { font-size: 11.5px; color: var(--text-3); margin-top: 8px; line-height: 1.6; }
+
+    /* 新建分类：图标下拉选择面板 */
+    .icon-pick-row { display: flex; align-items: center; gap: 10px; }
+    .icon-pick-btn {
+      display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
+      min-width: 104px; padding: 8px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--bg-soft);
+      font-size: 21px; line-height: 1; color: var(--text-2); cursor: pointer;
+    }
+    .icon-pick-btn:active { transform: scale(.97); }
+    .icon-pick-btn .caret { font-size: 11px; color: var(--text-3); letter-spacing: .4px; }
+    .icon-pick-row .hint { font-size: 11.5px; color: var(--text-3); line-height: 1.5; }
+    .icon-panel {
+      margin-top: 10px; background: var(--bg); border-radius: 10px;
+      padding: 12px; max-height: 250px; overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .icon-panel[hidden] { display: none; }
+    .icon-group-tt { font-size: 11px; color: var(--text-3); letter-spacing: .6px; margin: 10px 0 6px; }
+    .icon-group-tt.first { margin-top: 0; }
+    .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; }
+    .icon-cell {
+      aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;
+      font-size: 19px; line-height: 1; padding: 0; border-radius: 10px;
+      border: 1px solid transparent; background: var(--bg-soft); cursor: pointer;
+    }
+    .icon-cell.sel { border-color: var(--primary); background: var(--primary-soft); }
+    .icon-cell:active { transform: scale(.92); }
 
     /* ============ 账单列表 ============ */
     .bill-section { margin-bottom: 10px; }
@@ -1214,6 +1268,10 @@
         <div class="field"><label>图标（Emoji）</label><input type="text" id="leIcon" placeholder="📓" value="📓"></div>
         <div class="field"><label>币种符号</label><input type="text" id="leCurrency" value="¥"></div>
         <div class="field"><label>排序</label><input type="number" id="leOrder" value="0"></div>
+        <div class="field" id="leDeleteField" hidden>
+          <button type="button" class="btn danger" id="delLedgerBtn" style="width:100%;padding:12px">删除这个账本</button>
+          <div class="ledger-del-hint">删除后，该账本下的账单、账户、分类和预算会一起删除，且无法恢复。</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1347,6 +1405,46 @@
         <div class="field">
           <label>分类预算</label>
           <div id="bgCatList" style="background:var(--bg);border-radius:8px;padding:8px 12px"></div>
+          <div class="bg-cat-tools">
+            <button type="button" class="chip" id="bgAddCatBtn">＋ 新增分类预算</button>
+          </div>
+          <div class="bg-cat-picker" id="bgCatPicker" hidden>
+            <div class="tt">选择要设预算的分类，点一下加进列表</div>
+            <div class="picks" id="bgCatPicks"></div>
+            <div class="bg-cat-tools">
+              <button type="button" class="chip" id="bgNewCatBtn">＋ 新建自定义分类</button>
+              <button type="button" class="chip" id="bgPickerDone">收起</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态：新建自定义分类（预算里用，带图标库点选） -->
+  <div class="modal-mask" id="m-newcat">
+    <div class="modal">
+      <div class="modal-head">
+        <button class="cancel" data-close="m-newcat">取消</button>
+        <h3>新建分类</h3>
+        <button class="save" id="ncSave">保存</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>分类名称</label>
+          <input type="text" id="ncName" placeholder="如：宠物开销">
+        </div>
+        <div class="field">
+          <label>图标</label>
+          <div class="icon-pick-row">
+            <button type="button" class="icon-pick-btn" id="ncIconBtn" aria-label="选择图标">
+              <span id="ncIconShow">🏷️</span><span class="caret">选择 ▾</span>
+            </button>
+            <span class="hint">点左侧展开图标库，点选后自动填入</span>
+          </div>
+          <div class="icon-panel" id="ncIconPanel" hidden>
+            <div id="ncIconGroups"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1933,30 +2031,66 @@
       list.innerHTML = '';
       const ledgers = DATA.ledgers.slice().sort((a, b) => a.order - b.order);
       ledgers.forEach(l => {
+        const active = l.id === STATE.activeLedger;
         const item = el(`<div class="item" data-id="${l.id}">
-          <span>${l.icon} ${escapeHtml(l.name)}</span>
-          <span class="arr" style="display:flex;color:${l.id === STATE.activeLedger ? 'var(--primary)' : 'var(--text-3)'}">${l.id === STATE.activeLedger ? svgOf('check', 16, 2.4) : svgOf('chevR', 16, 2)}</span>
+          <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.icon} ${escapeHtml(l.name)}</span>
+          <span class="ledger-ops">
+            <button type="button" class="icon-btn" data-led-edit="${l.id}" style="color:var(--text-2)" aria-label="修改账本">${svgOf('pencil', 16)}</button>
+            <button type="button" class="icon-btn" data-led-del="${l.id}" style="color:var(--danger)" aria-label="删除账本">${svgOf('trash', 16)}</button>
+            <span class="arr" style="display:flex;color:${active ? 'var(--primary)' : 'var(--text-3)'}">${active ? svgOf('check', 16, 2.4) : svgOf('chevR', 16, 2)}</span>
+          </span>
         </div>`);
         item.addEventListener('click', () => {
-          if (l.id !== STATE.activeLedger) {
+          if (!active) {
             STATE.activeLedger = l.id;
             saveData();
             renderAll();
             closeModal('m-ledger');
           } else {
-            // 进入编辑
+            // 点当前账本进入编辑
             STATE.editing.ledgerId = l.id;
             openLedgerEditor(l);
           }
         });
-        item.addEventListener('contextmenu', e => {
-          e.preventDefault();
+        item.querySelector('[data-led-edit]').addEventListener('click', e => {
+          e.stopPropagation();
           STATE.editing.ledgerId = l.id;
           openLedgerEditor(l);
+        });
+        item.querySelector('[data-led-del]').addEventListener('click', e => {
+          e.stopPropagation();
+          deleteLedger(l.id);
         });
         list.appendChild(item);
       });
     }
+    // 删除账本：连同其账单/账户/分类/预算一起清理；至少保留一个账本
+    function deleteLedger(id) {
+      const l = ledgerById(id);
+      if (!l) return;
+      if (DATA.ledgers.length <= 1) return toast('至少要保留一个账本');
+      const n = billsInLedger(id).length;
+      const msg = n > 0
+        ? `删除账本「${l.name}」？该账本下的 ${n} 笔账单、账户、分类和预算都会一起删除，无法恢复。`
+        : `删除账本「${l.name}」？该账本的账户、分类和预算设置会一起删除，无法恢复。`;
+      confirmDialog(msg, () => {
+        DATA.bills = DATA.bills.filter(b => b.ledgerId !== id);
+        DATA.accounts = DATA.accounts.filter(a => a.ledgerId !== id);
+        DATA.categories = DATA.categories.filter(c => c.ledgerId !== id);
+        delete DATA.budgets[id];
+        DATA.ledgers = DATA.ledgers.filter(x => x.id !== id);
+        if (STATE.activeLedger === id) STATE.activeLedger = DATA.ledgers[0].id;
+        saveData();
+        closeModal('m-ledger-edit');
+        closeModal('m-ledger');
+        renderAll();
+        renderLedgerList();
+        toast('已删除账本「' + l.name + '」');
+      }, { danger: true, okText: '删除' });
+    }
+    $('#delLedgerBtn').addEventListener('click', () => {
+      if (STATE.editing.ledgerId) deleteLedger(STATE.editing.ledgerId);
+    });
     $('#newLedger').addEventListener('click', () => {
       STATE.editing.ledgerId = null;
       openLedgerEditor(null);
@@ -1967,6 +2101,8 @@
       $('#leIcon').value = l ? l.icon : '📓';
       $('#leCurrency').value = l ? l.currency : '¥';
       $('#leOrder').value = l ? l.order : DATA.ledgers.length;
+      // 最后一个账本不显示删除入口，避免删到没有账本可用
+      $('#leDeleteField').hidden = !(l && DATA.ledgers.length > 1);
       openModal('m-ledger-edit');
     }
     $('#saveLedger').addEventListener('click', () => {
@@ -2085,17 +2221,19 @@
         });
       }
       if (hasBudget) {
-        $('#budgetCard').innerHTML = `<div class="card-title"><span>本月预算</span><span class="more" id="editBudgetBtn">修改</span></div>${budgetCardHtml}`;
+        $('#budgetCard').innerHTML = `<div class="card-title"><span>本月预算</span><button type="button" class="budget-action" id="editBudgetBtn">修改</button></div>${budgetCardHtml}`;
       } else {
-        $('#budgetCard').innerHTML = `<div class="card-title"><span>本月预算</span><span class="more" id="editBudgetBtn">新增</span></div>
+        $('#budgetCard').innerHTML = `<div class="card-title"><span>本月预算</span><button type="button" class="budget-action" id="editBudgetBtn">新增</button></div>
           <div class="budget-empty">
             <div class="msg">还没有设置本月预算</div>
             <div class="empty-hint">设置后可在这里看到已用与剩余进度</div>
-            <button class="btn ghost" id="addBudgetBtn" style="margin-top:14px;padding:9px 20px;font-size:13px">设置本月预算</button>
+            <button class="btn ghost" id="addBudgetBtn" style="margin-top:14px;padding:9px 20px;font-size:13px">＋ 新增本月预算</button>
           </div>`;
-        $('#addBudgetBtn').onclick = openBudgetEditor;
+        $('#addBudgetBtn').onclick = e => { e.stopPropagation(); openBudgetEditor(); };
       }
-      $('#editBudgetBtn').onclick = openBudgetEditor;
+      // 右上角按钮与整张卡片都能点：点标题、点空白处也直接进预算编辑，避免"点了没反应"
+      $('#editBudgetBtn').onclick = e => { e.stopPropagation(); openBudgetEditor(); };
+      $('#budgetCard').onclick = () => openBudgetEditor();
       $('#budgetCard').style.display = '';
 
       // 账单列表（按日期分组）
@@ -2859,46 +2997,202 @@
        预算管理
        ==================================================================== */
     $$('[data-go="budgets"]').forEach(b => b.addEventListener('click', openBudgetEditor));
-    function openBudgetEditor() {
-      // 所有账本都可编辑预算：不存在或结构不完整时按空预算补齐
-      let bg = DATA.budgets[STATE.activeLedger];
+    // 预算对象兜底：任何账本（含历史数据缺结构）都能安全编辑
+    function ensureBudget(ledgerId) {
+      let bg = DATA.budgets[ledgerId];
       if (!bg || typeof bg !== 'object') bg = { total: 0, carryOver: false, categories: {} };
-      if (!bg.categories) bg.categories = {};
-      DATA.budgets[STATE.activeLedger] = bg;
+      if (!bg.categories || typeof bg.categories !== 'object') bg.categories = {};
+      DATA.budgets[ledgerId] = bg;
+      return bg;
+    }
+    function openBudgetEditor() {
+      const bg = ensureBudget(STATE.activeLedger);
       // 提示当前编辑的是哪个账本，避免多账本时改错对象
       const led = ledgerById(STATE.activeLedger);
       const scopeEl = $('#bgScope');
       if (scopeEl) scopeEl.textContent = '当前账本：' + (led ? led.name : '—');
+      // 标题直接标明本次是新增还是修改
+      const titleEl = $('#m-budget .modal-head h3');
+      const hasB = (+bg.total > 0) || Object.values(bg.categories).some(v => +v > 0);
+      if (titleEl) titleEl.textContent = hasB ? '修改本月预算' : '新增本月预算';
       $('#bgTotal').value = bg.total || 0;
       $('#bgCarry').classList.toggle('on', !!bg.carryOver);
+      // 分类预算草稿：增/删/改名先改草稿，点「保存」才落库（取消即丢弃）
+      STATE.bgDraft = {};
+      Object.keys(bg.categories).forEach(cid => {
+        if (categoryById(cid)) STATE.bgDraft[cid] = bg.categories[cid];
+      });
+      $('#bgCatPicker').hidden = true;
+      renderBgCats();
+      openModal('m-budget');
+    }
+    function renderBgCats() {
+      STATE.bgDraft = STATE.bgDraft || {};
       const list = $('#bgCatList');
+      if (!list) return;
       list.innerHTML = '';
-      const cats = currentCategories('expense').filter(c => !c.parentId);
-      cats.forEach(c => {
-        const row = el(`<div class="b-row">
+      const ids = Object.keys(STATE.bgDraft);
+      if (!ids.length) {
+        list.innerHTML = '<div class="bg-cat-empty">还没有分类预算。点下面「新增分类预算」，从已有分类里挑，或直接新建一个自定义分类。</div>';
+      }
+      ids.forEach(cid => {
+        const c = categoryById(cid);
+        if (!c) return;
+        const cur = STATE.bgDraft[cid];
+        const row = el(`<div class="b-row bg-cat-row">
           <span class="ic">${c.icon}</span>
-          <span class="n">${escapeHtml(c.name)}</span>
-          <input class="v" type="number" step="0.01" data-cat="${c.id}" value="${bg.categories[c.id] || 0}">
+          <span class="n" data-ren="${c.id}" title="点一下改名">${escapeHtml(c.name)}</span>
+          <input class="v" type="number" step="0.01" min="0" data-cat="${c.id}" value="${cur == null ? '' : cur}" placeholder="0">
+          <button type="button" class="icon-btn" data-ren="${c.id}" style="color:var(--text-2)" aria-label="修改分类名称">${svgOf('pencil', 16)}</button>
+          <button type="button" class="icon-btn" data-del-cat="${c.id}" style="color:var(--danger)" aria-label="删除该分类预算">${svgOf('trash', 16)}</button>
         </div>`);
         list.appendChild(row);
       });
-      openModal('m-budget');
+      $$('#bgCatList input[data-cat]').forEach(inp => {
+        inp.oninput = () => { STATE.bgDraft[inp.dataset.cat] = inp.value; };
+      });
+      $$('#bgCatList [data-ren]').forEach(b => {
+        b.onclick = e => {
+          e.stopPropagation();
+          const c = categoryById(b.dataset.ren);
+          if (!c) return;
+          promptDialog('修改分类名称（记账里的分类名会一起变）', c.name, v => {
+            const nm = (v || '').trim();
+            if (!nm) return toast('名称不能为空');
+            c.name = nm;
+            saveData();
+            renderBgCats();
+            toast('已改名');
+          });
+        };
+      });
+      $$('#bgCatList [data-del-cat]').forEach(b => {
+        b.onclick = e => {
+          e.stopPropagation();
+          delete STATE.bgDraft[b.dataset.delCat];
+          renderBgCats();
+        };
+      });
+      renderBgPicks();
     }
+    function renderBgPicks() {
+      const box = $('#bgCatPicks');
+      if (!box) return;
+      box.innerHTML = '';
+      const avail = currentCategories('expense').filter(c => !c.parentId && STATE.bgDraft[c.id] == null);
+      if (!avail.length) {
+        box.innerHTML = '<div class="bg-cat-empty">现有分类都已在列表里。需要新的？点下面「新建自定义分类」。</div>';
+      }
+      avail.forEach(c => {
+        const b = el(`<button type="button" class="chip" data-pick="${c.id}">${c.icon} ${escapeHtml(c.name)}</button>`);
+        b.onclick = () => {
+          STATE.bgDraft[c.id] = '';
+          renderBgCats();
+          toast('已加入「' + c.name + '」');
+        };
+        box.appendChild(b);
+      });
+    }
+    $('#bgAddCatBtn').addEventListener('click', () => {
+      const p = $('#bgCatPicker');
+      p.hidden = !p.hidden;
+    });
+    $('#bgPickerDone').addEventListener('click', () => { $('#bgCatPicker').hidden = true; });
+    /* 新建自定义分类：图标库（与预设分类同源，都是彩色 Emoji） */
+    const ICON_GROUPS = [
+      { name: '餐饮', icons: ['🍱', '🍚', '🍜', '🍔', '🍕', '🍣', '🍰', '🍎', '🧋', '☕', '🍺', '🥐'] },
+      { name: '交通', icons: ['🚇', '🚌', '🚕', '🚗', '⛽', '🚲', '🛵', '🚄', '✈️', '🅿️'] },
+      { name: '购物', icons: ['🛍️', '👕', '👟', '💄', '💍', '📱', '💻', '👜', '🕶️', '🧴'] },
+      { name: '居家', icons: ['🏠', '💡', '🔑', '🛋️', '🧹', '🪴', '🔧', '🚿', '🧺', '🪟'] },
+      { name: '娱乐', icons: ['🎮', '🎬', '🎤', '🎵', '🎳', '🏀', '⚽', '🎯', '🎲', '🎨'] },
+      { name: '医疗', icons: ['💊', '🏥', '🩺', '🦷', '👓', '💉', '🩹', '🧠'] },
+      { name: '学习', icons: ['📚', '✏️', '🎓', '🖊️', '📝', '🔬', '🗂️', '📐'] },
+      { name: '人情', icons: ['🧧', '🎂', '💐', '❤️', '🎉', '🍾', '🙏', '👶'] },
+      { name: '宠物', icons: ['🐶', '🐱', '🐟', '🐾', '🦴', '🐹', '🐰', '🦜'] },
+      { name: '通讯', icons: ['📶', '📞', '🌐', '💬', '📮', '📡'] },
+      { name: '旅行', icons: ['🧳', '🏨', '🎫', '🗺️', '🏖️', '⛺', '📸', '🧭'] },
+      { name: '其他', icons: ['💰', '💳', '📦', '🏷️', '⭐', '🔔', '⚡', '🧾', '💸', '🎁'] }
+    ];
+    function renderIconGroups(selected) {
+      const box = $('#ncIconGroups');
+      if (!box) return;
+      box.innerHTML = '';
+      ICON_GROUPS.forEach((g, gi) => {
+        const block = el(`<div>
+          <div class="icon-group-tt${gi === 0 ? ' first' : ''}">${g.name}</div>
+          <div class="icon-grid"></div>
+        </div>`);
+        const grid = block.querySelector('.icon-grid');
+        g.icons.forEach(ic => {
+          const b = el(`<button type="button" class="icon-cell${ic === selected ? ' sel' : ''}" data-icon="${ic}">${ic}</button>`);
+          b.onclick = e => {
+            e.stopPropagation();
+            STATE.ncIcon = ic;
+            $('#ncIconShow').textContent = ic;
+            $$('#ncIconGroups .icon-cell').forEach(x => x.classList.toggle('sel', x.dataset.icon === ic));
+          };
+          grid.appendChild(b);
+        });
+        box.appendChild(block);
+      });
+    }
+    $('#bgNewCatBtn').addEventListener('click', () => {
+      STATE.ncIcon = '🏷️';
+      $('#ncName').value = '';
+      $('#ncIconShow').textContent = '🏷️';
+      $('#ncIconPanel').hidden = true;
+      renderIconGroups('🏷️');
+      openModal('m-newcat');
+      setTimeout(() => { const n = $('#ncName'); if (n) n.focus(); }, 120);
+    });
+    $('#ncIconBtn').addEventListener('click', () => {
+      const p = $('#ncIconPanel');
+      p.hidden = !p.hidden;
+      // 展开后回到顶部，从第一个类别开始浏览（当前图标已显示在按钮上）
+      if (!p.hidden) p.scrollTop = 0;
+    });
+    $('#ncSave').addEventListener('click', () => {
+      const nm = $('#ncName').value.trim();
+      if (!nm) return toast('请输入分类名称');
+      const icon = STATE.ncIcon || '🏷️';
+      const dup = currentCategories('expense').find(c => !c.parentId && c.name === nm);
+      let cid = dup ? dup.id : null;
+      if (!cid) {
+        cid = uid('c');
+        const order = currentCategories('expense').filter(c => !c.parentId).length;
+        DATA.categories.push({ id: cid, ledgerId: STATE.activeLedger, name: nm, icon, type: 'expense', parentId: null, order });
+        saveData();
+      }
+      STATE.bgDraft = STATE.bgDraft || {};
+      STATE.bgDraft[cid] = '';
+      closeModal('m-newcat');
+      $('#bgCatPicker').hidden = true;
+      renderBgCats();
+      toast(dup ? '该分类已在列表里' : '已新建分类「' + nm + '」，填个金额');
+    });
     $('#bgCarryToggle').addEventListener('click', () => {
       $('#bgCarry').classList.toggle('on');
     });
-    $('#saveBudget').addEventListener('click', () => {      const bg = DATA.budgets[STATE.activeLedger];
+    $('#saveBudget').addEventListener('click', () => {
+      const bg = ensureBudget(STATE.activeLedger);
+      // 先把输入框最新值同步进草稿（防止个别输入事件未触发）
+      $$('#bgCatList input[data-cat]').forEach(inp => {
+        if (STATE.bgDraft[inp.dataset.cat] != null) STATE.bgDraft[inp.dataset.cat] = inp.value;
+      });
       bg.total = +$('#bgTotal').value || 0;
       bg.carryOver = $('#bgCarry').classList.contains('on');
       bg.categories = {};
-      $$('#bgCatList input[data-cat]').forEach(inp => {
-        const v = +inp.value || 0;
-        if (v > 0) bg.categories[inp.dataset.cat] = v;
+      let skipped = 0;
+      Object.keys(STATE.bgDraft || {}).forEach(cid => {
+        const v = +STATE.bgDraft[cid] || 0;
+        if (v > 0) bg.categories[cid] = v;
+        else skipped++;
       });
       saveData();
+      STATE.bgDraft = null;
       closeModal('m-budget');
       renderHome();
-      toast('已保存');
+      toast(skipped ? `已保存（${skipped} 个分类未填金额，已忽略）` : '已保存');
     });
 
     /* ====================================================================
