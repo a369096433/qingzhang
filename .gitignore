@@ -25,3 +25,6 @@ review/
 
 # Demo 草稿
 demo/
+
+# 参考项目镜像（第三方站点副本，不入库）
+downloads/
