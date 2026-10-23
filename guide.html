@@ -142,7 +142,7 @@
     <h1>小青账 · HTML 版<br>使用说明书</h1>
     <p class="sub">一款可离线运行的轻量记账工具 —— 多账本、二级分类、资产管理、分类预算、可视化报表</p>
     <div class="chips">
-      <span class="chip">适用 App v1.3</span>
+      <span class="chip">适用 App v1.4</span>
       <span class="chip grey">实测日期 2026-10-17</span>
       <span class="chip grey">18 组 · 136 项功能实测全部通过</span>
       <span class="chip grey">本地存储 · AI 可选</span>
@@ -709,7 +709,7 @@
   <ol>
     <li>底部「我的」→「AI 智能助手」。</li>
     <li>把 Key 粘贴到「API Key」框。输入时显示为圆点，属正常，防止旁人看到。</li>
-    <li>模型保持默认即可：文本模型 <strong>Qwen3-8B</strong>、视觉模型 <strong>GLM-4.1V</strong>，这两个都在免费档。</li>
+    <li>模型保持默认即可：文本模型 <strong>Qwen3-8B</strong>、视觉模型 <strong>Qwen3-VL-32B</strong>。若某个模型被服务商下架，App 会自动换用清单里的下一个。</li>
     <li>先点<strong>测试连通</strong>，显示「连接正常」后再点右上角「保存」。失败时看本节最后的排查表。</li>
   </ol>
   <figure>
@@ -739,6 +739,7 @@
       <tr><td>改用付费模型（如 GLM-4.6V、DeepSeek-V4）</td><td>按官方单价 × 你的用量，个人记账通常每月几元以内</td></tr>
     </tbody>
   </table>
+  <p>注意：免费档指的是<strong>不按 token 收费</strong>，但账户仍需通过实名认证且有可用额度——实测余额为 0 时，所有模型（含免费档）都会返回 402「余额不足」，需要到后台充值或激活额度。</p>
   <p>具体单价以服务商官网价格页为准。小青账不参与计费、也不抽成。</p>
 
   <h4>隐私：只发当次内容，不经过中间服务器</h4>
@@ -755,7 +756,7 @@
     <thead><tr><th style="width:36%">界面提示</th><th>原因与处理</th></tr></thead>
     <tbody>
       <tr><td>API Key 无效</td><td>Key 复制不全或已被删除。回服务商后台重新建一个。</td></tr>
-      <tr><td>账户额度不足</td><td>选了付费模型但余额不足。换回免费档模型即可。</td></tr>
+      <tr><td>账户额度不足（402）</td><td>账户没有可用额度。到硅基流动后台完成实名认证并充值（最低 10 元）；实测余额为 0 时，连免费档模型也会返回 402。</td></tr>
       <tr><td>请求太快了</td><td>短时间内请求过多（例如一次传很多张图）。等几秒重试。</td></tr>
       <tr><td>网络不可达或被浏览器拦截</td><td>断网，或浏览器插件拦截了外部请求。检查网络、换个浏览器再试。</td></tr>
       <tr><td>截图里没读出金额</td><td>截图太糊、金额被裁掉，或不是支付详情页。换一张，或手动填写。</td></tr>
@@ -941,7 +942,7 @@
   </ol>
 
   <div class="foot">
-    <span>小青账 · HTML 复刻版　使用说明书 v1.1（适用 App v1.3）</span>
+    <span>小青账 · HTML 复刻版　使用说明书 v1.2（适用 App v1.4）</span>
     <span>实测 2026-10-17 · 18 组 136 项全部通过</span>
   </div>
 

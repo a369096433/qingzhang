@@ -3616,17 +3616,18 @@
         name: '硅基流动 SiliconFlow',
         baseUrl: 'https://api.siliconflow.cn/v1',
         text: [
-          { id: 'Qwen/Qwen3-8B', name: 'Qwen3-8B · 免费' },
-          { id: 'THUDM/GLM-4-9B-chat', name: 'GLM-4-9B · 免费' },
-          { id: 'deepseek-ai/DeepSeek-R1-0528-Qwen3-8B', name: 'DeepSeek-R1 蒸馏 · 免费' }
+          { id: 'Qwen/Qwen3-8B', name: 'Qwen3-8B · 免费档' },
+          { id: 'Qwen/Qwen2.5-7B-Instruct', name: 'Qwen2.5-7B · 稳定' },
+          { id: 'Qwen/Qwen3-30B-A3B-Instruct-2507', name: 'Qwen3-30B-A3B · 更准' },
+          { id: 'THUDM/GLM-4-9B-0414', name: 'GLM-4-9B' }
         ],
         vision: [
-          { id: 'THUDM/GLM-4.1V-9B-Thinking', name: 'GLM-4.1V · 免费' },
-          { id: 'deepseek-ai/DeepSeek-OCR', name: 'DeepSeek-OCR · 免费' }
+          { id: 'Qwen/Qwen3-VL-32B-Instruct', name: 'Qwen3-VL-32B · 推荐' },
+          { id: 'Qwen/Qwen3-VL-8B-Instruct', name: 'Qwen3-VL-8B' },
+          { id: 'zai-org/GLM-4.5V', name: 'GLM-4.5V · 备选' }
         ]
       }
     };
-
     /* ---------- 配置读写（只存本机） ---------- */
     function aiCfg() {
       try {
@@ -3660,65 +3661,107 @@
       return String(id || '');
     }
 
-    /* ---------- 通道：OpenAI 兼容 /chat/completions ---------- */
+    /* ---------- 通道：OpenAI 兼容 /chat/completions ----------
+       不同模型支持的参数不一样（有的不认 enable_thinking，有的不认 json 模式），
+       所以按「先全参数 → 400 就摘掉出问题的参数重试 → 403/404 就换下一个模型」处理。 */
+    async function aiRequest(reg, apiKey, model, o) {
+      const imgs = (o && o.images) || [];
+      const sys = String((o && o.system) || 'You are a helpful assistant.');
+      const prompt = String((o && o.prompt) || '');
+      let userContent = prompt;
+      if (imgs.length) {
+        userContent = [{ type: 'text', text: prompt }];
+        imgs.forEach(u => { if (u) userContent.push({ type: 'image_url', image_url: { url: u, detail: 'low' } }); });
+      }
+      let opts = { json: !!(o && o.json), think: true };
+      const timeout = imgs.length ? 90000 : 60000;
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const body = {
+          model,
+          messages: [{ role: 'system', content: sys }, { role: 'user', content: userContent }],
+          stream: false,
+          temperature: (o && typeof o.temperature === 'number') ? o.temperature : 0,
+          max_tokens: (o && +o.maxTokens) || 600
+        };
+        if (opts.json) body.response_format = { type: 'json_object' };
+        if (opts.think) body.enable_thinking = false;   // 思考型模型不关会慢到超时
+
+        const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = ctrl ? setTimeout(() => ctrl.abort(), timeout) : null;
+        try {
+          const res = await fetch(reg.baseUrl + '/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiKey },
+            body: JSON.stringify(body),
+            signal: ctrl ? ctrl.signal : undefined
+          });
+          const json = await res.json().catch(() => null);
+          const apiMsg = (json && json.error && (json.error.message || json.error.type))
+            || (json && json.message) || '';
+
+          if (res.ok) {
+            const msg = json && json.choices && json.choices[0] && json.choices[0].message;
+            const text = msg && typeof msg.content === 'string' ? msg.content : '';
+            if (!text) {
+              const hasReasoning = !!(msg && msg.reasoning_content);
+              return { error: hasReasoning ? '模型只输出了思考过程没有结论，请换一个模型' : '模型没有返回内容，请换一个模型' };
+            }
+            return { text };
+          }
+
+          // 400：多半是某参数不被支持，摘掉再试
+          if (res.status === 400) {
+            if (/enable_thinking/i.test(apiMsg) && opts.think) { opts.think = false; continue; }
+            if (/(json[_ ]?mode|response_format|json_object)/i.test(apiMsg) && opts.json) { opts.json = false; continue; }
+            return { error: '请求被拒绝：' + (apiMsg || ('HTTP 400')) };
+          }
+          // 403/404 或明确说模型被禁用 → 换下一个模型
+          if (res.status === 403 || res.status === 404 || /model.*(disabled|not\s*found|does not exist|unavailable)/i.test(apiMsg)) {
+            return { error: '模型不可用（' + model + '）', nextModel: true };
+          }
+          if (res.status === 401) return { error: 'API Key 无效，请重新复制' };
+          if (res.status === 402) return { error: '账户额度不足：请到硅基流动后台确认已实名认证并有可用额度，或改用免费档模型' };
+          if (res.status === 429) return { error: '请求太快了，等几秒再试' };
+          if (res.status >= 500) return { error: '服务商暂时故障（HTTP ' + res.status + '），稍后重试' };
+          return { error: apiMsg ? String(apiMsg) : ('请求失败（HTTP ' + res.status + '）') };
+        } catch (e) {
+          if (e && e.name === 'AbortError') return { error: '请求超时（' + Math.round(timeout / 1000) + ' 秒），请检查网络或换一个模型' };
+          if (e instanceof TypeError) return { error: '网络不可达，或被浏览器拦截（可换一个浏览器或联网后重试）' };
+          return { error: (e && e.message) || '网络错误' };
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      }
+      return { error: '这个模型不支持当前请求参数，请换一个模型' };
+    }
+
     async function aiCall(o, override) {
       const cfg = override || aiCfg();
       if (!cfg || !cfg.apiKey) return { error: '还没配置 AI，请到「我的 → AI 智能助手」填入 API Key' };
       const reg = AI_REG[cfg.provider];
       if (!reg) return { error: '未知服务商' };
       const imgs = (o && o.images) || [];
-      const model = imgs.length ? cfg.visionModel : cfg.model;
-      if (!model) return { error: '未选择模型' };
-
-      const content = [{ type: 'text', text: String((o && o.prompt) || '') }];
-      imgs.forEach(u => { if (u) content.push({ type: 'image_url', image_url: { url: u, detail: 'low' } }); });
-      const body = {
-        model,
-        messages: [
-          { role: 'system', content: String((o && o.system) || 'You are a helpful assistant.') },
-          { role: 'user', content: imgs.length ? content : String((o && o.prompt) || '') }
-        ],
-        stream: false,
-        temperature: (o && typeof o.temperature === 'number') ? o.temperature : 0,
-        max_tokens: (o && +o.maxTokens) || 600
-      };
-      if (o && o.json) body.response_format = { type: 'json_object' };
-
-      const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const timer = ctrl ? setTimeout(() => ctrl.abort(), 60000) : null;
-      try {
-        const res = await fetch(reg.baseUrl + '/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.apiKey },
-          body: JSON.stringify(body),
-          signal: ctrl ? ctrl.signal : undefined
-        });
-        const json = await res.json().catch(() => null);
-        if (!res.ok) {
-          // 401/402/429 是最常见的三类：Key 错、余额/额度不足、请求过快
-          if (res.status === 401) return { error: 'API Key 无效，请重新复制' };
-          if (res.status === 402) return { error: '账户额度不足，请到服务商后台查看' };
-          if (res.status === 429) return { error: '请求太快了，等几秒再试' };
-          const m = json && json.error && (json.error.message || json.error.type);
-          return { error: m ? String(m) : ('请求失败（HTTP ' + res.status + '）') };
-        }
-        const msg = json && json.choices && json.choices[0] && json.choices[0].message;
-        const text = msg && typeof msg.content === 'string' ? msg.content : '';
-        if (!text) return { error: '模型没有返回内容，换个模型试试' };
-        return { text, model };
-      } catch (e) {
-        if (e && e.name === 'AbortError') return { error: '请求超时，请检查网络后重试' };
-        if (e instanceof TypeError) return { error: '网络不可达，或被浏览器拦截（可换一个浏览器或联网后重试）' };
-        return { error: (e && e.message) || '网络错误' };
-      } finally {
-        if (timer) clearTimeout(timer);
+      const pool = imgs.length ? reg.vision : reg.text;
+      // 先用户选的，再按清单顺序兜底（去重，最多试 3 个）
+      const chain = [...new Set([imgs.length ? cfg.visionModel : cfg.model].concat(pool.map(m => m.id)))].slice(0, 3);
+      let last = { error: '没有可用模型' };
+      for (const model of chain) {
+        const r = await aiRequest(reg, cfg.apiKey, model, o);
+        if (!r.error) return { text: r.text, model };
+        last = r;
+        if (!r.nextModel) break;   // 只有"模型不可用"才值得换下一个
       }
+      return { error: last.error || '调用失败' };
     }
 
     /* ---------- 模型输出一律当不可信输入：结构校验 + 长度截断 ---------- */
     function aiJson(raw) {
       if (!raw) return null;
-      let t = String(raw).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+      let t = String(raw).trim()
+        .replace(/^```(?:json)?/i, '').replace(/```$/, '')
+        .replace(/<\|[^|]*\|>/g, '')      // GLM 等模型会包一层 <|begin_of_box|>
+        .trim();
       const a = t.indexOf('{'), b = t.lastIndexOf('}');
       if (a >= 0 && b > a) t = t.slice(a, b + 1);
       try { return JSON.parse(t); } catch (e) { return null; }
@@ -4775,7 +4818,7 @@
         <div style="text-align:center;padding:20px 0">
           <div style="width:76px;height:76px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto">${svgOf('leaf', 40)}</div>
           <div style="font-size:20px;font-weight:700;margin-top:12px;letter-spacing:2px">小青账</div>
-          <div style="font-size:12px;color:var(--text-3);margin:4px 0 20px">HTML 复刻版 · v1.3<span style="opacity:.7"> · 2026-10-24</span></div>
+          <div style="font-size:12px;color:var(--text-3);margin:4px 0 20px">HTML 复刻版 · v1.4<span style="opacity:.7"> · 2026-10-24</span></div>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7">
             原版参考：小青账 (pro.youqian.bill)<br>
             本复刻为学习/演示用途，纯前端实现：<br>
