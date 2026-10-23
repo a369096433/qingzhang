@@ -2717,7 +2717,8 @@
       // 高度跟随容器：矮屏上 CSS 会把图表压小，写死 152 会把曲线纵向拉伸
       const box = host.closest('.chart-wrap') || host;
       const H = Math.max(96, Math.round(box.clientHeight) || 152);
-      const W = 340, pad = { t: 14, r: 10, b: 20, l: 34 };
+      // pad.t 必须给右上角图例留够行高：紧凑版曾压到 14，导致“支出/收入”字顶跑出 viewBox 被裁
+      const W = 340, pad = { t: 20, r: 10, b: 20, l: 34 };
       const innerW = W - pad.l - pad.r, innerH = H - pad.t - pad.b;
       const maxV = Math.max(1, ...daily.exp.slice(1), ...daily.inc.slice(1));
       const xStep = innerW / Math.max(1, days - 1);
@@ -2774,7 +2775,7 @@
           <circle id="tcInc" r="3.6" fill="${P.surface}" stroke="${P.inc}" stroke-width="2"/>
           <circle id="tcExp" r="3.6" fill="${P.surface}" stroke="${P.exp}" stroke-width="2"/>
         </g>
-        <g transform="translate(${W - pad.r - 64},${pad.t - 12})">
+        <g transform="translate(${W - pad.r - 64},${pad.t - 11})">
           <circle cx="0" cy="0" r="3" fill="${P.exp}"/>
           <text x="7" y="3.4" font-size="9" fill="${P.axis}">支出</text>
           <circle cx="42" cy="0" r="3" fill="${P.inc}"/>
