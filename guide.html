@@ -142,7 +142,7 @@
     <h1>小青账 · HTML 版<br>使用说明书</h1>
     <p class="sub">一款可离线运行的轻量记账工具 —— 多账本、二级分类、资产管理、分类预算、可视化报表</p>
     <div class="chips">
-      <span class="chip">适用 App v1.4</span>
+      <span class="chip">适用 App v1.4.1</span>
       <span class="chip grey">实测日期 2026-10-17</span>
       <span class="chip grey">18 组 · 136 项功能实测全部通过</span>
       <span class="chip grey">本地存储 · AI 可选</span>
@@ -709,7 +709,7 @@
   <ol>
     <li>底部「我的」→「AI 智能助手」。</li>
     <li>把 Key 粘贴到「API Key」框。输入时显示为圆点，属正常，防止旁人看到。</li>
-    <li>模型保持默认即可：文本模型 <strong>Qwen3-8B</strong>、视觉模型 <strong>Qwen3-VL-32B</strong>。若某个模型被服务商下架，App 会自动换用清单里的下一个。</li>
+    <li>模型不用管：清单里只有<strong>免费模型</strong>（文本 Xing4.0-29B、视觉 PaddleOCR-VL），不会产生费用。若某个模型被服务商下架，App 会自动换用清单里的下一个。</li>
     <li>先点<strong>测试连通</strong>，显示「连接正常」后再点右上角「保存」。失败时看本节最后的排查表。</li>
   </ol>
   <figure>
@@ -723,20 +723,21 @@
     <img src="manual/31-ai-add.png" alt="一句话入口与截图按钮">
     <figcaption>图 3-27　记一笔：顶部一句话输入行，键盘下方「截图识别」</figcaption>
   </figure>
-  <p><strong>截图识别</strong>：点「截图识别」选图，识别过程中按钮显示「识别中 2/3」。识别完成后金额、分类、账户、备注会直接填好，请自行核对再保存。一次最多 9 张。</p>
+  <p><strong>截图识别</strong>：点「截图识别」选图，识别过程中按钮显示「识别中 2/3」。识别完成后金额和备注会直接填好，分类需要自己选一下，请核对后再保存。一次最多 9 张。</p>
+  <p>受免费模型能力限制，单张截图大约需要 20 到 60 秒，期间请不要关闭页面。它只取金额与商户，不会自动判断分类。</p>
   <p><strong>月度洞察与问答</strong>：切到「报表」页，最下方就是 AI 卡片。点右上角「生成」；结果按账本和月份缓存在本机，同一个月再打开不会重复请求。下方输入框可直接提问。</p>
   <figure>
     <img src="manual/32-ai-report.png" alt="报表页 AI 卡片">
     <figcaption>图 3-28　报表页底部的 AI 助手与「问一问」</figcaption>
   </figure>
 
-  <h4>费用：按用量计费，免费档 0 元</h4>
-  <p>模型按 token（约等于字数）计费，不是包月、也不是按次。免费档模型不产生费用，个人日常记账远达不到免费档的限速上限。</p>
+  <h4>费用：只用免费模型，0 元</h4>
+  <p>App 的模型清单里只放了服务商标注「免费」的模型，收费模型不在清单里，选不到也就不会产生费用。个人日常记账的调用量，远达不到免费模型的限速上限。</p>
   <table>
     <thead><tr><th style="width:46%">用法</th><th>费用</th></tr></thead>
     <tbody>
-      <tr><td>只使用免费档模型（Qwen3-8B / GLM-4.1V）</td><td>0 元</td></tr>
-      <tr><td>改用付费模型（如 GLM-4.6V、DeepSeek-V4）</td><td>按官方单价 × 你的用量，个人记账通常每月几元以内</td></tr>
+      <tr><td>默认配置（Xing4.0-29B 文本 / PaddleOCR-VL 视觉）</td><td>0 元</td></tr>
+      <tr><td>调用过于频繁</td><td>会提示「请求太快了」，等几秒重试即可</td></tr>
     </tbody>
   </table>
   <p>注意：免费档指的是<strong>不按 token 收费</strong>，但账户仍需通过实名认证且有可用额度——实测余额为 0 时，所有模型（含免费档）都会返回 402「余额不足」，需要到后台充值或激活额度。</p>
@@ -942,7 +943,7 @@
   </ol>
 
   <div class="foot">
-    <span>小青账 · HTML 复刻版　使用说明书 v1.2（适用 App v1.4）</span>
+    <span>小青账 · HTML 复刻版　使用说明书 v1.3（适用 App v1.4.1）</span>
     <span>实测 2026-10-17 · 18 组 136 项全部通过</span>
   </div>
 

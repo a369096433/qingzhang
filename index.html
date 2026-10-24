@@ -3673,16 +3673,17 @@
       siliconflow: {
         name: '硅基流动 SiliconFlow',
         baseUrl: 'https://api.siliconflow.cn/v1',
+        /* 只列官方价格页明确标注「免费」的模型，收费模型一律不进清单。
+           实测（2026-10-24，同一把 Key）：
+           Xing4.0-29B 非流式 0.85~1.34s、流式首字 189~272ms，多笔拆分与中文数字都正确；
+           Hunyuan-MT-7B 是翻译模型，同一句要 17~34s，且把两笔并成一笔，不上架；
+           PaddleOCR-VL-1.5 是唯一免费视觉模型，单图 79~94s 且只回纯文本，截图识别因此很慢。 */
         text: [
-          { id: 'Qwen/Qwen3-8B', name: 'Qwen3-8B · 免费档' },
-          { id: 'Qwen/Qwen2.5-7B-Instruct', name: 'Qwen2.5-7B · 稳定' },
-          { id: 'Qwen/Qwen3-30B-A3B-Instruct-2507', name: 'Qwen3-30B-A3B · 更准' },
-          { id: 'THUDM/GLM-4-9B-0414', name: 'GLM-4-9B' }
+          { id: 'XingChenAGI/Xing4.0-29B', name: 'Xing4.0-29B · 免费' }
         ],
         vision: [
-          { id: 'Qwen/Qwen3-VL-32B-Instruct', name: 'Qwen3-VL-32B · 推荐' },
-          { id: 'Qwen/Qwen3-VL-8B-Instruct', name: 'Qwen3-VL-8B' },
-          { id: 'zai-org/GLM-4.5V', name: 'GLM-4.5V · 备选' }
+          // noJson：该模型带 response_format 时只回 {"text":"..."}，会把金额等字段丢掉，必须走纯文本
+          { id: 'PaddlePaddle/PaddleOCR-VL-1.5', name: 'PaddleOCR-VL · 免费（较慢）', noJson: true }
         ]
       }
     };
@@ -3719,6 +3720,35 @@
       return String(id || '');
     }
 
+    /* 读 SSE 增量：每凑到一段文本就回调一次，最后返回完整文本。
+       只处理 OpenAI 兼容格式的 data: 行，[DONE] 与其他事件直接跳过。 */
+    async function readSseText(res, onChunk) {
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '', full = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+        for (const line of lines) {
+          const s = line.trim();
+          if (!s || s[0] !== 'd' || s.indexOf('data:') !== 0) continue;
+          const payload = s.slice(5).trim();
+          if (!payload || payload === '[DONE]') continue;
+          let d = null;
+          try { d = JSON.parse(payload); } catch (e) { continue; }
+          const c = d && d.choices && d.choices[0] && d.choices[0].delta && d.choices[0].delta.content;
+          if (c) {
+            full += c;
+            try { onChunk(full); } catch (e) { /* 回调出错不影响主流程 */ }
+          }
+        }
+      }
+      return full;
+    }
+
     /* ---------- 通道：OpenAI 兼容 /chat/completions ----------
        不同模型支持的参数不一样（有的不认 enable_thinking，有的不认 json 模式），
        所以按「先全参数 → 400 就摘掉出问题的参数重试 → 403/404 就换下一个模型」处理。 */
@@ -3731,14 +3761,18 @@
         userContent = [{ type: 'text', text: prompt }];
         imgs.forEach(u => { if (u) userContent.push({ type: 'image_url', image_url: { url: u, detail: 'low' } }); });
       }
-      let opts = { json: !!(o && o.json), think: true };
-      const timeout = imgs.length ? 90000 : 60000;
+      let opts = { json: !!(o && o.json) && !(o && o.noJson), think: true };
+      // 免费视觉模型（PaddleOCR）实测 79~94 秒，超时给到 120 秒，否则必然被中断
+      const timeout = imgs.length ? 120000 : 60000;
+      // 文本请求走流式：免费模型首字约 200ms，先给用户一个「已经在动」的反馈，
+      // 视觉请求不流式（免费视觉模型单张要 80 秒，流式没有意义，也省掉一层解析）
+      const useStream = !imgs.length && !!(o && typeof o.onChunk === 'function');
 
       for (let attempt = 0; attempt < 3; attempt++) {
         const body = {
           model,
           messages: [{ role: 'system', content: sys }, { role: 'user', content: userContent }],
-          stream: false,
+          stream: useStream,
           temperature: (o && typeof o.temperature === 'number') ? o.temperature : 0,
           max_tokens: (o && +o.maxTokens) || 600
         };
@@ -3754,6 +3788,13 @@
             body: JSON.stringify(body),
             signal: ctrl ? ctrl.signal : undefined
           });
+          // 流式：先把增量读出来（首字通常 200ms 左右），读完再交给消毒函数
+          if (res.ok && useStream) {
+            const full = await readSseText(res, o.onChunk);
+            if (full) return { text: full };
+            return { error: '模型没有返回内容，请换一个模型' };
+          }
+
           const json = await res.json().catch(() => null);
           const apiMsg = (json && json.error && (json.error.message || json.error.type))
             || (json && json.message) || '';
@@ -3805,7 +3846,8 @@
       const chain = [...new Set([imgs.length ? cfg.visionModel : cfg.model].concat(pool.map(m => m.id)))].slice(0, 3);
       let last = { error: '没有可用模型' };
       for (const model of chain) {
-        const r = await aiRequest(reg, cfg.apiKey, model, o);
+        const meta = pool.find(m => m.id === model) || {};
+        const r = await aiRequest(reg, cfg.apiKey, model, Object.assign({}, o, { noJson: !!meta.noJson }));
         if (!r.error) return { text: r.text, model };
         last = r;
         if (!r.nextModel) break;   // 只有"模型不可用"才值得换下一个
@@ -3910,14 +3952,15 @@
     ].join(' ');
 
     /* ---------- 能力 1：一句话记账 ---------- */
-    async function aiParse(text) {
+    async function aiParse(text, onChunk) {
       const names = [...new Set(currentCategories('expense').concat(currentCategories('income')).map(c => c.name))].slice(0, 40);
       const accs = currentAccounts().map(a => a.name).slice(0, 12);
       const res = await aiCall({
         system: AI_PARSE_SYS,
         prompt: 'Category list: ' + names.join('、') + '\nAccount list: ' + accs.join('、')
           + '\nToday: ' + todayStr(0) + '\nSentence: ' + text,
-        json: true, maxTokens: 600, temperature: 0
+        json: true, maxTokens: 600, temperature: 0,
+        onChunk: onChunk
       });
       if (res.error) return { error: res.error };
       const j = aiJson(res.text);
@@ -3942,6 +3985,45 @@
       return { list: out };
     }
 
+    /* 免费视觉模型（PaddleOCR-VL）只回纯文本、不产出 JSON，这里做一次「保守提取」：
+       只认明确的小数金额与 YYYY-MM-DD 日期，认不出就返回 null，宁可失败也不猜。
+       取数优先带负号/币符的那个（支付金额通常是 -38.50），避免把余额当金额。 */
+    function aiOcrTextFallback(raw, baseDate) {
+      const t = String(raw || '').replace(/\s+/g, ' ').trim();
+      if (!t) return null;
+      let amount = null;
+      const signed = t.match(/[-−¥￥]\s?(\d{1,6}\.\d{2})(?![.\d])/);
+      if (signed) amount = parseFloat(signed[1]);
+      if (!(amount > 0)) {
+        const plain = t.match(/(?:^|[^\d.])(\d{1,6}\.\d{2})(?![.\d])/);
+        if (plain) amount = parseFloat(plain[1]);
+      }
+      if (!(amount > 0) || amount > 1000000) return null;
+
+      let date = baseDate;
+      const dm = t.match(/(20\d{2})[-/年](\d{1,2})[-/月](\d{1,2})/);
+      if (dm) date = dm[1] + '-' + String(dm[2]).padStart(2, '0') + '-' + String(dm[3]).padStart(2, '0');
+
+      let account = null;
+      ['支付宝', '微信', '银行卡', '余额宝', '花呗', '信用卡', '现金'].forEach(k => {
+        if (!account && t.indexOf(k) >= 0) account = k;
+      });
+
+      // 商户：取「收款方 / 商户全称」后面、下一个字段名之前的那段
+      const FIELDS = ['收款方', '商户全称', '商户名称', '商品说明', '付款方式', '支付方式', '付款时间', '交易时间', '交易单号', '订单号', '转账说明', '金额'];
+      let note = '';
+      for (const key of ['收款方', '商户全称', '商户名称']) {
+        const i = t.indexOf(key);
+        if (i < 0) continue;
+        const rest = t.slice(i + key.length).trim();
+        let cut = rest.length;
+        for (const g of FIELDS) { const k = rest.indexOf(g); if (k >= 0 && k < cut) cut = k; }
+        note = rest.slice(0, cut).trim().slice(0, 20);
+        if (note) break;
+      }
+      return { amount, date, note, account };
+    }
+
     /* ---------- 能力 2：支付截图识别（单张） ---------- */
     async function aiOcr(dataUrl) {
       const names = [...new Set(currentCategories('expense').concat(currentCategories('income')).map(c => c.name))].slice(0, 40);
@@ -3954,7 +4036,22 @@
       });
       if (res.error) return { error: res.error };
       const j = aiJson(res.text);
-      if (!j) return { error: '没能从截图里读出交易信息' };
+      if (!j) {
+        // 免费视觉模型只回文字：退回保守提取，提出金额就当成功，让用户自己核对
+        const fb = aiOcrTextFallback(res.text, todayStr(0));
+        if (!fb) return { error: '没能从截图里读出金额，换一张更清晰的，或手动填写' };
+        return {
+          tx: {
+            type: 'expense',
+            amount: fb.amount,
+            note: fb.note || '',
+            date: fb.date,
+            categoryId: null,
+            accountId: aiAccId(fb.account)
+          },
+          fromText: true
+        };
+      }
       const type = j.type === 'income' ? 'income' : 'expense';
       const amount = aiNum(j.amount);
       if (amount == null) return { error: '截图里没读出金额' };
@@ -4057,7 +4154,14 @@
       const btn = $('#aiSayBtn');
       if (btn.disabled) return;
       btn.disabled = true; btn.textContent = '解析中';
-      const res = await aiParse(text);
+      // 流式首字约 200ms，一到就把提示条点亮，别让用户盯着一个不动的按钮
+      let ticked = false;
+      aiHint('正在理解这句话…');
+      const res = await aiParse(text, (full) => {
+        if (ticked) return;
+        ticked = true;
+        aiHint('正在理解这句话…（已收到 ' + full.length + ' 字）');
+      });
       btn.disabled = false; btn.textContent = '解析';
       if (res.error) { aiHint(res.error, true); return; }
       inp.value = '';
@@ -4079,16 +4183,17 @@
       const btn = $('#aiShotBtn');
       const origin = btn.innerHTML;
       btn.disabled = true;
-      aiHintHide();
+      // 免费视觉模型（PaddleOCR）单张要 1 分钟左右，先讲清楚，别让用户以为页面卡死
+      aiHint('免费视觉模型较慢，每张约 1 分钟，请先别关页面');
       const txs = [];
-      let failed = 0;
+      let failed = 0, fromText = 0;
       for (let i = 0; i < list.length; i++) {
         btn.textContent = '识别中 ' + (i + 1) + '/' + list.length + '…';
         try {
           const url = await aiCompress(list[i]);
           const r = await aiOcr(url);
           if (r.error || !r.tx) failed++;
-          else txs.push(r.tx);
+          else { if (r.fromText) fromText++; txs.push(r.tx); }
         } catch (e) { failed++; }
       }
       btn.disabled = false;
@@ -4098,7 +4203,7 @@
       if (!txs.length) { aiHint('没能从截图读出金额（' + failed + ' 张失败），请手动填写或换一张', true); return; }
       if (txs.length === 1 && !failed) {
         aiFillBill(txs[0]);
-        aiHint('已从截图填好，请核对金额');
+        aiHint(fromText ? '已从截图文字里读出金额，分类请自己选一下' : '已从截图填好，请核对金额');
       } else {
         closeModal('m-add');
         aiShowBatch(txs, failed);
@@ -4219,7 +4324,7 @@
         out.innerHTML = '<div class="ai-loading">正在回答…</div>';
         const res = await aiCall({
           system: AI_ASK_SYS,
-          prompt: 'Ledger data:/n' + aiSummaryText(STATE.activeLedger, STATE.viewMonth) + '\n\nQuestion: ' + q,
+          prompt: 'Ledger data:\n' + aiSummaryText(STATE.activeLedger, STATE.viewMonth) + '\n\nQuestion: ' + q,
           maxTokens: 250, temperature: 0.2
         });
         out.innerHTML = res.error
@@ -4255,7 +4360,7 @@
       body.innerHTML = '<div class="ai-loading">正在生成，大约几秒…</div>';
       const res = await aiCall({
         system: AI_INSIGHT_SYS,
-        prompt: 'Month summary data:/n' + aiSummaryText(atLedger, atYm) + '\n\nWrite the review in Chinese now:',
+        prompt: 'Month summary data:\n' + aiSummaryText(atLedger, atYm) + '\n\nWrite the review in Chinese now:',
         maxTokens: 320, temperature: 0.5
       });
       if (res.error) {
@@ -4876,7 +4981,7 @@
         <div style="text-align:center;padding:20px 0">
           <div style="width:76px;height:76px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto">${svgOf('leaf', 40)}</div>
           <div style="font-size:20px;font-weight:700;margin-top:12px;letter-spacing:2px">小青账</div>
-          <div style="font-size:12px;color:var(--text-3);margin:4px 0 20px">HTML 复刻版 · v1.4<span style="opacity:.7"> · 2026-10-24</span></div>
+          <div style="font-size:12px;color:var(--text-3);margin:4px 0 20px">HTML 复刻版 · v1.4.1<span style="opacity:.7"> · 2026-10-24</span></div>
           <p style="font-size:13px;color:var(--text-2);line-height:1.7">
             原版参考：小青账 (pro.youqian.bill)<br>
             本复刻为学习/演示用途，纯前端实现：<br>
